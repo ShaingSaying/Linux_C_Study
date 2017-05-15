@@ -1,13 +1,12 @@
 #include <stdio.h>
-
-int main(void)
+int main()
 {
-    const float PER_GALLON = 3.785f;
-    const float PER_MILE = 1.609f;
-    float miles = 0.0f;
-    float gallons = 0.0f;
+    const float PER_GALLON = 3.785;
+    const float PER_MILE = 1.609;
+    float miles = 0.0;
+    float gallons = 0.0;
 
-    printf("Please input the miles and gallons:\n");
+    printf("Please input the miles and gallons:");
     scanf("%f %f", &miles, &gallons);
     
     float miles_per_gallon = miles / gallons;
