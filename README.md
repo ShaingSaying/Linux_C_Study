@@ -1,5 +1,5 @@
 # Linux & C 
-**看的书**
+**看过的书**
 
 [《C Primer plus》](http://www.ptpress.com.cn/shopping/buy?bookId=1ad34259-08de-42ca-bea1-9c2ca8e67d86)
 
