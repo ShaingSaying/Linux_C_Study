@@ -17,8 +17,8 @@ linux程序设计入门好书，涉及到linux程序设计的各方面。
 
 这本书主要介绍了系统软件的运行机制和原理，对装载、链接和库进行了深入浅出的剖析。
 
-# [《C和指针》总结](/note/Pointers_on_C_Note.md)
+## [《C和指针》总结](/note/Pointers_on_C_Note.md)
 
-# [《程序员的自我修养--链接、装载与库》总结](/note/Self_cultivation_of_programmers_Note.md)
+## [《程序员的自我修养--链接、装载与库》总结](/note/Self_cultivation_of_programmers_Note.md)
 
-# [《Linux程序设计》总结](/note/Linux_Program_Note.md)
+## [《Linux程序设计》总结](/note/Linux_Program_Note.md)
