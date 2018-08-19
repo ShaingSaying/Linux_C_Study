@@ -253,12 +253,182 @@ int *b
 //b++ 可编译通过
 ```
 
+## 指向数组的指针
+```c
+int (*p)[10];
+```
+
+## 指针数组
+```c
+int *api[10];   //下表引用优先级高于间接访问
+
+sizeof(keyword)/sizeof(keyword[0])
+```
 
 # 字符串、字符和字节
+
+```c
+char *strncpy(char *dst,char const *src,size_t len);
+//它的结果不会以NUL字节结尾
+char buffer[BSIZE];
+strncpy(buffer,name,BSIZE);
+buffer[BSIZE-1]='\0';
+```
+strncat总是在结果字符串后面添加一个NUL字节，而且它不会像strncpy那样对目标数组用NUL字节进行填充。
+
+查找标记char *strtok(char *str,char const *sep);
+```c
+#include<stdio.h>
+#include<string.h>
+void print_tokens(char *line)
+{
+    static char whitespace[]=" \t\f\r\v\n";
+    char *token;
+
+    for(token=strtok(line,whitespace);
+    token!=NULL;
+    token=strtok(NULL,whitespace))
+    {
+        printf("next token is %s\n", token);
+    }
+}
+```
+
+```c
+memset(buffer,0,SIZE);
+```
+
 # 结构和联合
+声明结构时的一种良好技巧：
+```c
+typedef struct{
+    xx
+    xx
+} Simple;
+Simple x;
+Simple y[20],*z;
+```
+点操作符的结合性时**从左向右**。
+
+**注意如下陷阱**：
+```c
+typedef struct {
+    int a;
+    SELF_REF3 *b;
+    int c;
+}SELF_REF3;
+//类型名直到声明的末尾才定义，所以在结构声明的内部它尚未定义。
+typedef struct SELF_REF3_TAG {
+    int a;
+    struct SELF_REF3_TAG *b;
+    int c;
+}SELF_REF3;
+```
+
+**所有结构的起始存储位置必须是结构中边界要求最严格的数据类型所要求的位置。**
+
+向函数传递结构参数是低效的，尽量传递结构指针，提升效率。
+
+分配给联合的内存数量取决与它的最长成员的长度。
+
 # 动态内存分配
 # 结构体和指针
 # 高级指针话题
+```c
+int f;  /*一个整形变量*/
+int *f; /*一个指向整形的指针*/
+```
+```c
+int f();
+```
+它把f声明为一个函数，它的返回值是一个整数。
+
+```c
+int *f();
+```
+首先执行的是函数调用操作符()，应为它的优先级高于间接访问操作符。因此，f是一个函数，它的返回值类型是一个指向整型的指针。
+
+```c
+int (*f)();
+```
+第一对括号只起聚合作用，它迫使间接访问在函数调用之前进行，第二对括号是函数调用操作符。所以，f是一个函数指针，它所指向的函数返回一个整型值。
+
+```c
+int *(*f)();
+```
+f是一个函数指针，只是所指向的函数的返回值是一个整型指针。
+
+```c
+int f[];    /*f是一个整型数组*/
+int *f[];   /*下标优先级更高，f是一个数组，它的元素类型是指向整型的指针*/
+int (*f)[]; /*指向数组的指针，数组的每个元素都是整型*/
+```
+
+```c
+int f()[];
+```
+**非法声明**函数只能返回标量值，这个f函数返回一个整型数组。
+
+```c
+int f[]();
+```
+**非法声明**f似乎是一个数组，它的元素类型是返回值为整型的函数。但是数组元素必须具有相同的长度，但不同的函数显然可能具有不同的长度。
+
+```c
+int (*f[])();   
+```
+f是一个元素为某种类型的指针的数组。数组元素的类型是函数指针，它所指向的函数的返回值是一个 整型值。
+
+```c
+int *(*f[])();
+```
+这是一个指针数组，指针所指向的类型是返回值为整型指针的函数。
+## 回调函数与转换表
+回调函数实例
+```c
+#include<stdio.h>
+#include "node.h"
+Node* search_list(Node *node,void const *value, int (*compare)(void const *,void const *))
+{
+    while(node != NULL)
+    {
+        if(compare(&node->value,value)==0)
+        {
+            break;
+        }
+        node=node->link;
+    }
+    return node;
+}
+
+int compare_ints(void const *a,void const *b)
+{
+    if(*(int *)a==*(int *)b)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+desired_node=search_list(root,&desired_value,compare_ints);
+```
+
+转移表jump table
+```c
+double add(double, double);
+double sub(double, double);
+double mul(double, double);
+double div(double, double);
+···
+double (*oper_func[])(double, double)={
+    add,sub,mul,div,...
+};
+
+result=oper_func[oper](op1,op2);
+```
 # 预处理器
 # 输入&输出函数
 # 标准函数库
