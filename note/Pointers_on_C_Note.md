@@ -430,7 +430,57 @@ double (*oper_func[])(double, double)={
 result=oper_func[oper](op1,op2);
 ```
 # 预处理器
+预处理(preprocessing)阶段：删除注释、插入被#include指令包含的文件内容、定义和替换由#define指令定义的符号以及确定代码的部分内容是否应该根据一些条件编译指令进行编译。
+## 预定义符号
+```c
+__FILE__    进行编译的源文件名
+__LINE__    文件当前的行号
+__DATE__    文件被编译的日期
+__TIME__    文件被编译的时间
+__STDC__    遵循ANSI C,其值为1
+```
+## 宏
+```c
+#define SQUARE(x) x*x       //SQUARE(a+1)-->a+1*a+1
+#define SQUARE(x) (x)*(x)
+#define DOUBLE(x) ((x)+(x)) //10*DOUBLE(a)-->10*(a)+(a)
+```
+移除一个宏定义
+```c
+#undef name
+```
+命令行定义
+```c
+int array[ARRAY_SIZE]
+//-Dname 值为1
+//-Dname=stuff 值为stuff
+cc -DARRAY_SIZE=100 prog.c
+```
+## 文件包含
+```c
+#ifndef _HELLO_
+#define _HELLO_
+/*
+**All the stuff that you want in the header file
+*/
+#endif
+```
 # 输入&输出函数
+## 文本流&二进制流
+**文本流**：标准规定文本行至少运行254个字符。在MS-DOS系统中，文本行的结束方式以一个回车符和一个换行符结尾。UNIX系统中只使用一个换行符结尾。
+
+**二进制流**：二进制流中的字节将完全根据程序编写它们的形式写入到文件或设备中，而且完全根据它们从文件或设备读取的形式读入到程序中。并未做任何改变。
+
+FILE是一个数据结构，用于访问一个流。stdin,stdout,stderr都是一个指向FILE结构的指针。
+
+标准I/O&件I/O
+I/O函数以三种基本的形式处理数据：单个字符、文本行和二进制数据。
+|数据类型|输入|输出|描述|
+|-|:-:|-:|:-|
+|字符|getchar|putchar|读取(写入)单个字符|
+|文本行|gets/scanf|puts/printf|文本行的输入输出(未格式化/格式化)|
+|二进制|fread|fwrite|读取(写入)二进制数据|
+
 # 标准函数库
 # 经典抽象数据类型
 # 运行环境
