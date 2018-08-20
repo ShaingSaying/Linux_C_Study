@@ -331,8 +331,6 @@ typedef struct SELF_REF3_TAG {
 
 分配给联合的内存数量取决与它的最长成员的长度。
 
-# 动态内存分配
-# 结构体和指针
 # 高级指针话题
 ```c
 int f;  /*一个整形变量*/
@@ -483,5 +481,50 @@ I/O函数以三种基本的形式处理数据：单个字符、文本行和二�
 |二进制|fread|fwrite|读取(写入)二进制数据|
 
 # 标准函数库
-# 经典抽象数据类型
-# 运行环境
+
+## 随机数
+```c
+int rand(void);
+void srand(unsigned int seed);
+srand((unsigned int)time(0));
+```
+## 字符串转换
+```c
+int atoi(char const *string);
+```
+## 日期与时间
+
+```c
+// 处理器时间
+clock_t clock(void);   
+//程序开始执行起处理器所消耗的时间，可以两个时间相减获取精确时间。
+//返回时钟滴答次数，转换秒，除以CLOCKS_PER_SEC
+
+//当天时间
+time_t time(time_t *returned_value);    //time函数返回当前的日期和时间
+
+//日期与时间转换
+char *ctime(time_t const *time_value);  //转换为字符串,asctime(localtime(time_value));
+
+double difftime(time_t time1, time_t time2); //计算time1-time2的差，结果转换为秒
+
+struct tm *gmtime(time_t const *time_value);    //UTC时间
+struct tm *localtime(time_t const *time_value);     //当地时间
+
+char *asctime(struct tm const *tm_ptr);     //tm结构的时间转换为字符串
+size_t strftime(char *string,size_t maxsize, char const *format, struct tm const *tm_ptr);  //tm结构转换为一个根据某个格式字符串而定的字符串
+
+time_t mktime(struct tm *tm_ptr);   //把一个tm结构转换为一个time_t值
+```
+
+## 信号
+```c
+void (*signal(int sig, void (*handler)(int)))(int);
+```
+
+## 断言
+```c
+void assert(int expression);
+//如果值为假(零),向标准错误打印一条诊断信息并终止程序。
+//如果值为真(非零),它不打印任何东西，程序继续执行
+```
