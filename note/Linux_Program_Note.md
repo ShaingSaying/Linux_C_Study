@@ -208,10 +208,14 @@ cat /proc/sys/fs/file-max   //同时打开的文件总数
 int fcntl(int fildes, int cmd);     //对底层文件描述符提供更多的操作方法
 int fcntl(int fildes, int cmd, long arg);       
 ```
-**mmap**(内存映射)函数的作用是建立一段可以被两个或更多个程序读写的内存。一个程序对它所做出的修改可以被其他程序看见。该函数创建一个指向一段内存
+**mmap**(内存映射)函数的作用是建立一段可以被两个或更多个程序读写的内存。一个程序对它所做出的修改可以被其他程序看见。该函数创建一个指向一段内存区域的指针，该内存区域与可以通过一个打开的文件描述符访问的文件的内容相关联。
 ```c
 #include<sys/mman.h>
 void *mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off);
+
+int msync(void *addr, size_t len, int flags);   //把在该内存段的某个部分或整段中的修改写回到被映射的文件中
+
+int munmap(void *addr, size_t len);     //释放内存段
 ```
 # Linux环境
 # 数据管理
