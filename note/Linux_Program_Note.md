@@ -218,12 +218,57 @@ int msync(void *addr, size_t len, int flags);   //把在该内存段的某个部
 int munmap(void *addr, size_t len);     //释放内存段
 ```
 # Linux环境
+```c
+int main(int argc, char *argv[])
+//argc是程序参数的个数(包括程序名本身)，argv是一个代表参数自身的字符串数组(程序名为第一个元素argv[0])。
+```
+```c
+#include<stdio.h>
+int getopt(int argc, char *const argv[], const char *optstring);
+extern char *optarg;
+extern int optind, opterr, optopt;
+//getopt_long
+```
+## 日志
+```c
+/usr/adm & /var/log
+/var/log/messages
+/var/log/mail
+/etc/syslog.conf
+/etc/syslog-ng/syslog-ng.conf   //检查系统配置
+```
+```c
+#include<syslog.h>
+void syslog(int priority, const char *message, arguments...);
+//转换控制符%m用于插入与错误变量errno当前值对应的出错消息字符串
+void closelog(void);
+void openlog(const char *ident, int logopt, int facility);
+int setlogmask(int maskpri);
+```
 # 数据管理
+## 文件锁定
+
 # MySQL
+
 # 开发工具
+## make
+## makefile
+
 # 调试
+## 预处理&宏
+## GDB调试
 # 进程与信号
+## 进程
+## 信号
 # POSIX线程
+## 同步
+## 多线程
 # 进程间通信：管道
+
 # 信号量、共享内存和消息队列
+## 信号量
+## 共享内存
+## 消息队列
 # 套接字
+## 套接字
+## 多客户
