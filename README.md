@@ -19,6 +19,6 @@ linux程序设计入门好书，涉及到linux程序设计的各方面。
 
 ## [《C和指针》总结](/note/Pointers_on_C_Note.md)
 
-## [《程序员的自我修养--链接、装载与库》总结](/note/Self_cultivation_of_programmers_Note.md)
-
 ## [《Linux程序设计》总结](/note/Linux_Program_Note.md)
+
+## [《程序员的自我修养--链接、装载与库》总结](/note/Self_cultivation_of_programmers_Note.md)
