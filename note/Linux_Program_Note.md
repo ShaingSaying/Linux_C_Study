@@ -246,13 +246,109 @@ void openlog(const char *ident, int logopt, int facility);
 int setlogmask(int maskpri);
 ```
 # 数据管理
+交换空间(swap space)
+>按需换页的虚拟内存系统
+
 ## 文件锁定
+文件段锁定(文件区域锁定)
+```c
+#include<fcntl.h>
+int fcntl(int fildes, int command, ...);
+int fcntl(int fildes, int command, struct flock *flock_structure);
+```
+fcntl对一个打开的文件描述符进行操作，并根据command参数的设置完成不同的任务。提供了3个用于文件锁定的命令选项。
+```c
+F_GETLK
+F_SETLK
+F_SETLKW
+```
+flock(文件锁)结构依赖具体的实现，至少包含以下成员：
+```c
+short l_type
+short l_whence  //取值必须是SEEK_SET(文件头),SEEK_CUR(当前位置),SEEK_END(文件尾)中的一个。l_whence通常设置为SEEK_SET,这时l_start就从文件的开始计算
+off_t l_start   //l_whence是l_start的相对偏移位置，l_start是该区域的第一个字节
+off_t l_len
+pid_t l_pid
+```
+l_type成员的取值定义在头文件fcntl.h中
+```c
+F_RDLCK     //共享(或读)锁。许多不同的进程可以拥有文件同一(或者重叠)区域上的共享锁。只要任一进程拥有一把共享锁，那么就没有进程可以再获得该区域上的独占锁。为了获得一把共享锁，文件必须以“读”或“读写”方式打开
+F_UNLCK     //解锁，用来清除锁
+F_WRLCK     //独占(或写)锁。只有一个进程可以在文件的任一特定区域拥有一把独占锁。一旦一个进程拥有了这样一把锁，任何其他进程都无法在该区域上获得任何类型的锁。为了获得一把独占锁，文件必须以“写”或“读/写”方式打开
+```
+**F_GETLK命令**
+用于获取fildes打开的文件的锁信息。它不会尝试去锁定文件。
+
+调用进程把自己想创建的锁类型信息传递给fcntl，使用F_GETLK命令的fcntl就会返回将会阻止获取锁的任何信息。
+
+进程可能使用F_GETLK调用来查看文件中某个区域的当前锁状态。如果文件已被锁定从而阻止锁请求成功执行，fcntl会用相关信息覆盖flock结构。如果所请求可以成功执行，flock结构将保持不变，如果F_GETLK调用无法获得信息，它将返回-1表明失败。成功就返回非-1值。
+
+**F_SETLK命令**
+对fildes指向的文件的某个区域加锁或解锁。flock结构中使用的值:l_type,l_pid。与F_GETLK一样，要加锁的区域由flock结构中的l_start,l_whence和l_len的值定义。
+
+如果锁成功，返回非-1值，失败返回-1。
+
+**F_SETLKW命令**
+与F_SETLK相同，但在无法获取锁时，这个调用将等待直到可以为止。一旦开始等待，只有在可以获取锁或收到一个信号时才会返回。
+
 
 # MySQL
+## 连接
+1. 初始化一个连接句柄结构
+2. 实际进行连接
+```c
+#include<mysql.h>
+MYSQL *mysql_init(MYSQL *);
+MYSQL *mysql_real_connect(MYSQL *connection,    //被mysql_init初始化的结构
+        const char *server_host,        //可以是主机名也可以是ip地址
+        const char *sql_user_name,
+        const char *sql_password,
+        const char *db_name,
+        unsigned int port_number,       //0
+        const char *unix_socket_name,   //NULL
+        unsigned int flags);
+void mysql_close(MYSQL *connection);
+```
+```c
+int mysql_options(MYSQL *connection, enum option_to_set, const char *argument);
+/******
+1. 在mysql_init和mysql_real_connect之间即可。
+2. MYSQL_OPT_CONNECT_TIMEOUT const unsigned int * 连接超时之前的等待秒速
+3. MYSQL_OPT_COMPRESS None,使用NULL 网络连接中使用压缩机制
+4. MYSQL_INIT_COMMAND const char * 每次建立后发送的命令
+5. 成功的调用将返回0。
+******/
+```
+## 错误处理
+```c
+unsigned int mysql_errno(MYSQL *connection);
+char *mysql_error(MYSQL *connection);
+```
+## 执行
+### 不返回数据的语句UPDATE,DELETE,INSERT
+```c
+my_ulonglong mysql_affected_rows(MYSQL *connection);    //用于检查受影响的行数
+```
+### 返回数据的语句
+```c
+MYSQL_RES *mysql_store_result(MYSQL *connection);   //提取所有的数据
+my_ulonglong mysql_num_rows(MYSQL_RES *result);     //返回结果集中的行数
+MYSQL_ROW mysql_fetch_row(MYSQL_RES *result);       //从mysql_store_result的结果中提取一行，放入一个行结构中
+void mysql_data_seek(MYSQL_RES *result, myulonglong offset);    //在结果集中跳转，设置被下一个mysql_fetch_row操作的返回的行
+MYSQL_ROW_OFFSET mysql_row_tell(MYSQL_RES *result);     //返回一个偏移值，表示结果集中的当前位置
+MYSQL_ROW_OFFSET mysql_row_seek(MYSQL_RES *result, MYSQL_ROW_OFFSET offset);        //在结果集中移动当前位置，返回之前位置
+void mysql_free_result(MYSQL_RES *result);
+MYSQL_RES *mysql_use_result(MYSQL *connection); //逐行提取数据，未提取的数据网络中
+unsigned int mysql_field_count(MYSQL *connection);
+MYSQL_FIELD *mysql_fetch_field(MYSQL_RES *result);
+```
+
 
 # 开发工具
 ## make
 ## makefile
+## 后缀和模式规则
+## makefile文件和子目录
 
 # 调试
 ## 预处理&宏
