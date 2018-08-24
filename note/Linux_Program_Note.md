@@ -355,6 +355,8 @@ MYSQL_FIELD *mysql_fetch_field(MYSQL_RES *result);
 ## GDB调试
 
 # 进程与信号
+UNIX标准定义进程为：一个其中运行着一个或多个线程的地址空间和这些线程所需要的系统资源。
+
 ## 进程
 ## 信号
 # POSIX线程
