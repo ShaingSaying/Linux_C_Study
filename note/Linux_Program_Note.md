@@ -356,8 +356,53 @@ MYSQL_FIELD *mysql_fetch_field(MYSQL_RES *result);
 
 # 进程与信号
 UNIX标准定义进程为：一个其中运行着一个或多个线程的地址空间和这些线程所需要的系统资源。
+**启动新进程**
+它必须用一个shell来启动程序，使用system函数的效率不高。
+```c
+#include<stdlib.h>
+int system(const char *string);
+```
+## 替换进程映像exec系列函数
+exec系列函数把当前进程替换为一个新进程。可以使用exec函数讲程序的执行从一个程序切换到另一个程序。exec函数比system函数更有效，新的程序启动后，原来的程序不再运行。
+```c
+#include<stdio.h>
+char **environ;
+int execl(const char *path, const char *arg0, ..., (char *)0);
+int execlp(const char *file, const char *arg0, ..., (char *)0);
+int execle(const char *path, const char *arg0, ..., (char *)0, char *const envp[]);
+int execv(const char *path, char *const argv[]);
+int execvp(const char *file, char *const argv[]);
+int execve(const char *path, char *const argv[], char *const envp[]);
+```
+## 复制进程映像fork
+```c
+#include<sys/types.h>
+#include<unistd.h>
+pid_t fork(void);
+pid_t new_pid;
+new_pid = fork();
+switch(new_pid)
+{
+        case -1:        //error
+                break;
+        case 0:         //child
+                break;
+        default :       //parent
+                break;
+}
+```
+**wait等待一个进程**
+```c
+#include<sys/types.h>
+#include<sys/wait.h>
+pid_t wait(int *stat_loc);
+pid_t waitpid(pid_t pid, int *stat_loc, int options);
+/*pid参数如果为-1，waitpid将返回任一子进程信息。*/
+```
+**僵尸进程**
 
-## 进程
+子进程终止时，与父进程之间的关联还会保持，直到父进程也正常终止或父进程调用wait才结束。代表子进程的表项不会立刻释放，仍然存在于系统中，它的退出码仍然保存，此时它成为一个僵尸进程。
+
 ## 信号
 # POSIX线程
 ## 同步
