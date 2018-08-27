@@ -404,6 +404,52 @@ pid_t waitpid(pid_t pid, int *stat_loc, int options);
 子进程终止时，与父进程之间的关联还会保持，直到父进程也正常终止或父进程调用wait才结束。代表子进程的表项不会立刻释放，仍然存在于系统中，它的退出码仍然保存，此时它成为一个僵尸进程。
 
 ## 信号
+
+信号是unix和linux系统响应某些条件而产生的一个事件。
+
+**处理信号**
+```c
+#include<stdio.h>
+void (*signal(int sig, void (*func)(int)))(int);
+```
+
+**发送信号**
+```c
+#include<sys/types.h>
+#include<signal.h>
+int kill(pid_t pid, int sig);   //成功0，失败-1
+
+#include<unistd.h>
+unsigned int alarm(unsigned int seconds); //定时发送SIGALRM信号
+
+int pause(void);        //把程序挂起直到一个信号出现为止
+```
+
+**一个健壮的信号接口**
+```c
+#include<signal.h>
+int sigaction(int sig, const struct sigaction *act, struct sigaction *oact);
+```
+sigaction结构成员
+```c
+void (*) (int) sa_handler       //函数指针，指向接收到信号sig时将被调用的信号处理函数。可以设置为SIG_IGN和SIG_DFL,分别表示忽略和恢复
+sigset_t sa_mask                //信号集,加入到进程的信号屏蔽字段的
+int sa_flags                    //
+```
+**信号集**
+```c
+#include<signal.h>
+
+int sigaddset(sigset_t *set, int signo);        //增加给定的信号
+int sigemptyset(sigset_t *set);         //将信号集初始化为空
+int sigfillset(sigset_t *set);          //将信号集初始化为包含所有已定义的信号
+int sigdelset(sigset_t *set, int signo);        //删除给定的信号
+int sigismember(sigset_t *set, int signo);      //判断一个给定的信号是否是一个信号集的成员
+int sigprocmask(int how, const sigset_t *set, sigset_t *oset);
+int sigpending(sigset_t *set);
+int sigsuspend(const sigset_t *sigmask);
+```
+
 # POSIX线程
 ## 同步
 ## 多线程
@@ -413,6 +459,8 @@ pid_t waitpid(pid_t pid, int *stat_loc, int options);
 ## 信号量
 ## 共享内存
 ## 消息队列
+
+
 # 套接字
 ## 套接字
 ## 多客户
