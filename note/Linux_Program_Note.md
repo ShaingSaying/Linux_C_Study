@@ -451,6 +451,19 @@ int sigsuspend(const sigset_t *sigmask);
 ```
 
 # POSIX线程
+线程是一个进程内部的一个控制序列。
+
+当进程执行fork调用时，将创建出该进程的一个新副本。这个新进程拥有自己的变量和自己的PID，它的时间调度也是独立的，它的执行几乎完全独立于父进程。
+
+当进程中创建一个新线程时，新的执行线程将拥有自己的栈(因此也有自己的局部变量),但与它的创建者共享全局变量、文件描述符、信号处理函数和当前的目录状态。
+
+**_PEENTRANT**宏定义来告诉编译器我们需要可重入功能。
+
+```c
+#include<pthread.h>
+
+int pthread_create(pthread_t *thread, pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
+```
 ## 同步
 ## 多线程
 # 进程间通信：管道
