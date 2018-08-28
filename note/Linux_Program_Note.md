@@ -464,13 +464,115 @@ int sigsuspend(const sigset_t *sigmask);
 
 int pthread_create(pthread_t *thread, pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
 ```
-## 同步
-## 多线程
-# 进程间通信：管道
+1. 第一个参数写入一个标识符来引用新线程
+2. 第二个参数设置线程属性，一般不需要时设置为NULL
+3. 第三个参数启动线程将要执行的函数
+4. 第四个参数传递给执行函数的参数
+成功返回0，失败返回错误代码。
 
+```c
+#include<pthread.h>
+void pthread_exit(void *retval);        //终止调用它的线程
+
+int pthread_join(pthread_t th, void **thread_return);   //第二个参数执行一个指针，它指向另一个指针，而后者指向线程的返回值。
+```
+
+检查头文件/usr/include/pthread.h。如果这个文件中显示的版权日期是2003年或更晚，那几乎可以肯定使用的是NPTL实现。
+```c
+gcc -D_REENTRANT -I /usr/include/nptl thread1.c -o thread1 -L /usr/lib/nptl -lpthread
+
+//如果系统默认使用NPTL线程库，那么编译程序就无需加上-I和-L选项。
+gcc -D_REENTRANT thread1.c -o thread1 -lpthread
+```
+## 同步
+### 信号量
+```c
+#include<semaphore.h>
+
+int sem_init(sem_t *sem, int pshared, unsigned int value);      //pshared参数控制信号量的类型，如果为0，表示这个信号量是当前进程的局部信号量，否则，这个信号量就可以在多个进程之间共享。
+
+//该指针指向的对象是sem_init调用初始化的信号量
+int sem_wait(sem_t *sem);       //减1，它会等待信号量有个非零值才会开始减法操作。如果对值为0的信号量调用sem_wait，这个函数就会等待。
+int sem_post(sem_t *sem);       //以原子操作的方式给信号量的值加1。
+int sem_destroy(sem_t *sem);
+```
+### 互斥量
+```c
+#include<pthread.h>
+
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *mutexattr);
+
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
+
+//成功时返回0，失败时返回错误代码。
+```
+## 线程属性
+```c
+#include<pthread.h>
+int pthread_attr_init(pthread_attr_t *attr);
+```
+**线程调度**
+
+**取消线程**
+
+**多线程**
+
+# 进程间通信：管道
+## 进程管道
+```c
+#include<stdio.h>
+FILE *popen(const char *command, const char *open_mode);
+int pclose(FILE *stream_to_close);
+//调用popen函数返回FILE*文件指针流，之后就可以通过fread与fwrite函数来处理流
+```
+## 底层的pipe函数
+
+这个函数在两个程序之间传递数据不需要启动一个shell来解释请求命令
+```c
+#include<unistd.h>
+int pipe(int file_descriptor[2]);
+//pipe函数的参数是一个由两个整数类型的文件描述符组成的整组的指针。
+```
+写入file_descriptor[1]的所有数据都可以从file_descriptor[0]读回来。
+
+pipe使用的是文件描述符不是文件流，所有必须使用底层的read和write调用来访问数据。
+
+## 命名管道(不先关的进程之间)
+命令行上创建命名管道
+```c
+mknod filename p
+mkfifo filename
+```
+程序中
+```c
+#include<sys/types.h>
+#include<sys/stat.h>
+
+int mkfifo(const char *filename, mode_t mode);
+int mknod(const char *filename, mode_t mode | S_IFIFO, (dev_t) 0);
+
+/*open调用将阻塞，除非有一个进程以写方式打开同一个FIFO，否则不会返回。*/
+open(const char *path, O_RDONLY); 
+
+/*即使没有其他进程以写方式打开FIFO，这个open调用也将成功并立刻返回。*/
+open(const char *path, O_RDONLY|O_NONBLOCK);
+
+/*open调用将阻塞，直到有一个进程以读方式打开同一个FIFO为止*/
+open(const char *path, O_WRONLY);
+
+/*立刻返回*/
+open(const char *path, O_WRONLY|O_NONBLOCK);
+```
 # 信号量、共享内存和消息队列
 ## 信号量
+
 ## 共享内存
+
+
 ## 消息队列
 
 
