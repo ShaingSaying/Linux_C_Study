@@ -569,13 +569,173 @@ open(const char *path, O_WRONLY|O_NONBLOCK);
 ```
 # 信号量、共享内存和消息队列
 ## 信号量
+```c
+#include<sys/sem.h>
 
+/*直接控制信号量信息*/
+int semctl(int sem_id, int sem_num, int command, ...);
+union semun{
+        int val;
+        struct semid_ds *buf;
+        unsigned short *array;
+}
+
+/*创建一个新的信号量或取得一个已有信号量的键
+num_sems参数指定需要的信号量数目，它几乎总是取值为1
+成功时返回一个正数即其他信号量函数将用到的信号量标识符，失败返回-1*/
+int semget(key_t key, int num_sems, int sem_flags);
+
+/*用于改变信号量的值*/
+int semop(int sem_id, struct sembuf *sem_ops, size_t num_sem_ops);
+struct sembuf{
+        short sem_num;
+        short sem_op;
+        short sem_flg;
+}
+```
 ## 共享内存
+```c
+#include<sys/shm.h>
 
+/*刚创建共享内存时，不能被任何进程访问，shmat函数启用对该共享内存的访问，将其连接到一个进程的地址空间中。
+第二个参数shm_addr指定共享内存连接到当前进程中的地址位置，一般是空指针，表示让系统来选择共享内存出现的地址。*/
+void *shmat(int shm_id, const void *shm_addr, int shmflg);
+
+/**/
+int shmctl(int shm_id, int cmd, struct shmid_ds *buf);
+struct shmid_ds{
+        uid_t shm_perm.uid;
+        uid_t shm_perm.gid;
+        mode_t shm_perm.mode;
+}
+
+/*将共享内存从当前进程中分离。
+成功返回0，失败返回-1。
+分离并未删除，只是使得该共享内存对当前进程不再可用*/
+int shmdt(const void *shm_addr);
+
+/*创建共享内存
+成功返回一个共享内存标识符
+以字节为单位指定需要共享的内存容量*/
+int shmget(key_t key, size_t size, int shmflg);
+```
 
 ## 消息队列
+```c
+#include<sys/msg.h>
 
+/**/
+int msgctl(int msqid, int cmd, struct msqid_ds *buf);
+struct msqid_ds{
+        uid_t msg_perm.uid;
+        uid_t msg_perm.gid;
+        mode_t msg_perm.mode;
+}
+
+/*创建和访问一个消息队列
+成功时msgget函数返回一个正整数，即标识符，失败返回-1*/
+int msgget(key_t key, int msgflg);
+
+/*从一个消息队列中获取消息*/
+int msgrcv(int msqid, void *msg_ptr, size_t msg_sz, long int msgtype, int msgflg);
+
+/*用来把消息添加到消息队列中*/
+int msgsnd(int msqid, const void *msg_ptr, size_t msg_sz, int msgflg);
+struct my_message{
+        long int message_type;
+        //data
+}
+```
 
 # 套接字
-## 套接字
-## 多客户
+套接字的3个属性：域(domain)、类型(type)、协议(protocol)。
+```c
+#include<sys/types.h>
+#include<sys/socket.h>
+
+int socket(int domain, int type, int protocol);
+```
+|域|说明|
+|---|---|
+|AF_UNIX|unix域协议(文件系统套接字)|
+|AF_INET|ARPA因特网协议(UNIX网络套接字)|
+
+type参数指定套接字的通信特性。它的取值包括SOCK_STREAM和SOCK_DGRAM。
+
+AF_UNIX域套接字地址格式
+```c
+struct sockaddr_un{
+        sa_family_t sun_family;
+        char sun_path[];
+}
+```
+AF_INET域套接字地址格式
+```c
+struct sockaddr_in{
+        short int sin_family;
+        unsigned short int sin_port;
+        struct in_addr sin_addr;
+}
+struct in_addr{
+        unsigned long int s_addr;
+}
+```
+## 命名套接字
+```c
+#include<sys/socket.h>
+/*bind系统调用把参数address中的地址分配给与文件描述符socket关联的未命名套接字成功时返回0，失败时返回-1*/
+int bind(int socket, const struct sockaddr *address, size_t address_len);
+```
+## 创建套接字队列
+```c
+#include<sys/socket.h>
+/*listen函数将队列长度设置为backlcg参数的值
+成功返回0，失败返回-1*/
+int listen(int socket, int backlog); 
+```
+## 接受连接
+```c
+#include<sys/socket.h>
+int accept(int socket, struct sockaddr *address, size_t *address_len);
+```
+如果套接字队列中没有未处理的连接，accept将阻塞直到客户建立连接为止。可以通过对套接字文件秒速符设置标志来改变这一行为。
+```c
+int flags=fcntl(socket, F_GETFL, 0);
+fcntl(socket, F_SETFL, O_NONBLOCK|flags);
+```
+## 请求连接
+```c
+#include<sys/socket.h>
+int connect(int socket, const struct sockaddr *address, size_t address_len);    //成功返回0，失败-1
+```
+## 主机字节序和网络字节序
+```c
+#include<netinet/in.h>
+unsigned long int htonl(unsigned long int hostlong);
+unsigned short int htons(unsigned short int hostshort);
+unsigned long int ntohl(unsigned long int netlong);
+unsigned long int ntohs(unsigned short int netshort);
+```
+## 套接字选项
+```c
+#include<sys/socket.h>
+int setsockopt(int socket, int level, int option_name, const void *option_value, size_t option_len);
+```
+## select系统调用
+```c
+#include<sys/types.h>
+#include<sys/time.h>
+
+void FD_ZERO(fd_set *fdset);    //将fd_set初始化为空集合
+void FD_CLR(int fd, fd_set *fdset);     //设置由参数fd传递的文件描述符
+void FD_SET(int fd, fd_set *fdset);     //清除由参数fd传递的文件描述符
+int FD_ISSET(int fd, fd_set *fdset);    //参数fd指向的文件描述符是由参数fdset指向的fd_set集合中的一个元素，返回非零值。
+
+struct timeval{
+        time_t tv_sec;
+        long tv_usec;
+}       //设定超时值来防止无限期的阻塞
+
+/*select调用用于测试文件描述符集合中，是否有一个文件描述符已处于可读状态或可写状态或错误状态，它将阻塞以等待某个文件描述符进入上述这些状态。*/
+int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *errorfds, struct timeval *timeout);
+```
