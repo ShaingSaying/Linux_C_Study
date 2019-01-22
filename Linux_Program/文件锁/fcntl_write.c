@@ -37,7 +37,7 @@ int main()
     }
     printf("---%d---\n",getpid());
 
-    for(i=0;i<30;i++)
+    for(i=0;i<10;i++)
     {
 
         pFile = fopen(TEST_FILE,"a");
