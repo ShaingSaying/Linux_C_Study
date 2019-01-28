@@ -8,7 +8,7 @@ void *handle(void *arg) //任务处理函数
     {
         pool_get(ppool,&val);   //从线程池中获得线程执行任务数据
         printf("thread[%u]:excute task!,%d+%d=%d\n",pthread_self(),val.left,val.right,val.left+val.right);  //执行输出
-#if 1
+#if 0
         switch(val.left)
         {
             case: 1
