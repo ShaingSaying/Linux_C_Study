@@ -54,10 +54,8 @@ flex通过两个简单的规则来解决二义性：
 
 一般只需要在第一次调用yylex之前重新设定yyin。
 
-<<<<<<< HEAD
 flex提供了yyrestart(FILE* f)它使用词法分析器读取标准输入输出文件f。(可读取多个文件)
-=======
-flex提供了yyrestart(FILE* f)它使用词法分析器读取标准输入输出文件f。
+
 
 flex的输入管理的三个层次是：
 1. 设置yyin来读取所需文件
@@ -77,4 +75,22 @@ flex的输入管理的三个层次是：
 
 ## 两种分析方法
 bison语法分析器可以使用两种分析方法，一种是LALR(1)(自左向右向前查看一个记号)，另一种是GLR(通用的自左向右)。大多数语法分析器使用LRLR(1)，它不如GLR强大但是被认为比GLR更快和更容易使用。
->>>>>>> 6bd0217347573ab10aa1c7e3cfaaa1cce561f2cc
+
+# 分析SQL
+
+SQL(Structured Query Language，结构化查询语言)最常用的处理关系型数据库语言。
+
+database->table->row/column
+
+## 逆波兰式(RPN)
+波兰式
+```
+(a+b)*c     * + a b c
+a+(b*c)     + a * b c
+```
+逆波兰式
+```
+(a+b)*c     a b + c *
+a+(b*c)     a b c * +
+```
+逆波兰式的价值在于它很容易使用堆栈进行解释。
