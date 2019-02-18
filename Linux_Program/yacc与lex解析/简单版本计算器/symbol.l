@@ -13,5 +13,5 @@
 [ \t]       { /* 忽略空白字符 */ }
 "("         { return OP; }
 ")"         { return CP; }
-"//".*           { printf("Mystery character %s\n", yytext); }
+"//".*      { printf("Mystery character %s\n", yytext); }
 %%

@@ -53,4 +53,4 @@ flex通过两个简单的规则来解决二义性：
 
 一般只需要在第一次调用yylex之前重新设定yyin。
 
-flex提供了yyrestart(FILE* f)它使用词法分析器读取标准输入输出文件f。
+flex提供了yyrestart(FILE* f)它使用词法分析器读取标准输入输出文件f。(可读取多个文件)
