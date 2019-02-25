@@ -22,6 +22,6 @@ int main(int argc, char *argv[])
         printf("[%s]value:  %s\n",argv[i],(char *)dict_fetch_value(mydict,argv[i],strlen(argv[i])));
     }
 
-    dict_release(mydict);
+    //dict_release(mydict);
     return 0;
 }
