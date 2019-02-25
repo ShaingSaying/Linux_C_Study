@@ -52,23 +52,23 @@
  * for Redis, as we use copy-on-write and don't want to move too much memory
  * around when there is a child performing saving operations.
  *
- * Í¨¹ı dictEnableResize() ºÍ dictDisableResize() Á½¸öº¯Êı£¬
- * ³ÌĞò¿ÉÒÔÊÖ¶¯µØÔÊĞí»ò×èÖ¹¹şÏ£±í½øĞĞ rehash £¬
- * ÕâÔÚ Redis Ê¹ÓÃ×Ó½ø³Ì½øĞĞ±£´æ²Ù×÷Ê±£¬¿ÉÒÔÓĞĞ§µØÀûÓÃ copy-on-write »úÖÆ¡£
+ * é€šè¿‡ dictEnableResize() å’Œ dictDisableResize() ä¸¤ä¸ªå‡½æ•°ï¼Œ
+ * ç¨‹åºå¯ä»¥æ‰‹åŠ¨åœ°å…è®¸æˆ–é˜»æ­¢å“ˆå¸Œè¡¨è¿›è¡Œ rehash ï¼Œ
+ * è¿™åœ¨ Redis ä½¿ç”¨å­è¿›ç¨‹è¿›è¡Œä¿å­˜æ“ä½œæ—¶ï¼Œå¯ä»¥æœ‰æ•ˆåœ°åˆ©ç”¨ copy-on-write æœºåˆ¶ã€‚
  *
  * Note that even when dict_can_resize is set to 0, not all resizes are
  * prevented: a hash table is still allowed to grow if the ratio between
  * the number of elements and the buckets > dict_force_resize_ratio.
  *
- * ĞèÒª×¢ÒâµÄÊÇ£¬²¢·ÇËùÓĞ rehash ¶¼»á±» dictDisableResize ×èÖ¹£º
- * Èç¹ûÒÑÊ¹ÓÃ½ÚµãµÄÊıÁ¿ºÍ×Öµä´óĞ¡Ö®¼äµÄ±ÈÂÊ£¬
- * ´óÓÚ×ÖµäÇ¿ÖÆ rehash ±ÈÂÊ dict_force_resize_ratio £¬
- * ÄÇÃ´ rehash ÈÔÈ»»á£¨Ç¿ÖÆ£©½øĞĞ¡£
+ * éœ€è¦æ³¨æ„çš„æ˜¯ï¼Œå¹¶éæ‰€æœ‰ rehash éƒ½ä¼šè¢« dictDisableResize é˜»æ­¢ï¼š
+ * å¦‚æœå·²ä½¿ç”¨èŠ‚ç‚¹çš„æ•°é‡å’Œå­—å…¸å¤§å°ä¹‹é—´çš„æ¯”ç‡ï¼Œ
+ * å¤§äºå­—å…¸å¼ºåˆ¶ rehash æ¯”ç‡ dict_force_resize_ratio ï¼Œ
+ * é‚£ä¹ˆ rehash ä»ç„¶ä¼šï¼ˆå¼ºåˆ¶ï¼‰è¿›è¡Œã€‚
  */
-// Ö¸Ê¾×ÖµäÊÇ·ñÆôÓÃ rehash µÄ±êÊ¶
-static int dict_can_resize = 1; //dictEnableResizeÖĞÖÃ1   dictDisableResizeÖĞÖÃ0
-// Ç¿ÖÆ rehash µÄ±ÈÂÊ 
-//1£©×ÜµÄÔªËØ¸öÊı ³ı DICTÍ°µÄ¸öÊıµÃµ½Ã¿¸öÍ°Æ½¾ù´æ´¢µÄÔªËØ¸öÊı(pre_num),Èç¹û pre_num > dict_force_resize_ratio,¾Í»á´¥·¢dict À©´ó²Ù×÷¡£dict_force_resize_ratio = 5¡£
+// æŒ‡ç¤ºå­—å…¸æ˜¯å¦å¯ç”¨ rehash çš„æ ‡è¯†
+static int dict_can_resize = 1; //dictEnableResizeä¸­ç½®1   dictDisableResizeä¸­ç½®0
+// å¼ºåˆ¶ rehash çš„æ¯”ç‡ 
+//1ï¼‰æ€»çš„å…ƒç´ ä¸ªæ•° é™¤ DICTæ¡¶çš„ä¸ªæ•°å¾—åˆ°æ¯ä¸ªæ¡¶å¹³å‡å­˜å‚¨çš„å…ƒç´ ä¸ªæ•°(pre_num),å¦‚æœ pre_num > dict_force_resize_ratio,å°±ä¼šè§¦å‘dict æ‰©å¤§æ“ä½œã€‚dict_force_resize_ratio = 5ã€‚
 
 static unsigned int dict_force_resize_ratio = 5;
 
@@ -177,15 +177,15 @@ unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) {
 /* Reset a hash table already initialized with ht_init().
  * NOTE: This function should only be called by ht_destroy(). */
 /*
- * ÖØÖÃ£¨»ò³õÊ¼»¯£©¸ø¶¨¹şÏ£±íµÄ¸÷ÏîÊôĞÔÖµ
+ * é‡ç½®ï¼ˆæˆ–åˆå§‹åŒ–ï¼‰ç»™å®šå“ˆå¸Œè¡¨çš„å„é¡¹å±æ€§å€¼
  *
- * p.s. ÉÏÃæµÄÓ¢ÎÄ×¢ÊÍÒÑ¾­¹ıÆÚ
+ * p.s. ä¸Šé¢çš„è‹±æ–‡æ³¨é‡Šå·²ç»è¿‡æœŸ
  *
  * T = O(1)
  */
 
-/* rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ı³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(ÕâÀï¾ö¶¨ÊÇ·ñĞèÒªÀ©Õ¹hash)->dictExpand 
-Ëõ¼õhash¹ı³Ì:serverCron->tryResizeHashTables->dictResize(ÕâÀï¾ø¶ÔËõ¼õºóµÄÍ°Êı)->dictExpand */
+/* rehashæ‰©å¤§è°ƒç”¨å…³ç³»è°ƒç”¨è¿‡ç¨‹:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(è¿™é‡Œå†³å®šæ˜¯å¦éœ€è¦æ‰©å±•hash)->dictExpand 
+ç¼©å‡hashè¿‡ç¨‹:serverCron->tryResizeHashTables->dictResize(è¿™é‡Œç»å¯¹ç¼©å‡åçš„æ¡¶æ•°)->dictExpand */
 
 static void _dictReset(dictht *ht)
 {
@@ -197,10 +197,10 @@ static void _dictReset(dictht *ht)
 
 /* Create a new hash table */
 /*
- * ´´½¨Ò»¸öĞÂµÄ×Öµä
+ * åˆ›å»ºä¸€ä¸ªæ–°çš„å­—å…¸
  *
  * T = O(1)
- */ //typeÎªxxxDictType(ÀıÈçkeyptrDictTypeµÈ)
+ */ //typeä¸ºxxxDictType(ä¾‹å¦‚keyptrDictTypeç­‰)
 dict *dictCreate(dictType *type,
         void *privDataPtr)
 {
@@ -213,28 +213,28 @@ dict *dictCreate(dictType *type,
 
 /* Initialize the hash table */
 /*
- * ³õÊ¼»¯¹şÏ£±í
+ * åˆå§‹åŒ–å“ˆå¸Œè¡¨
  *
  * T = O(1)
  */
 int _dictInit(dict *d, dictType *type,
         void *privDataPtr)
 {
-    // ³õÊ¼»¯Á½¸ö¹şÏ£±íµÄ¸÷ÏîÊôĞÔÖµ
-    // µ«ÔİÊ±»¹²»·ÖÅäÄÚ´æ¸ø¹şÏ£±íÊı×é
+    // åˆå§‹åŒ–ä¸¤ä¸ªå“ˆå¸Œè¡¨çš„å„é¡¹å±æ€§å€¼
+    // ä½†æš‚æ—¶è¿˜ä¸åˆ†é…å†…å­˜ç»™å“ˆå¸Œè¡¨æ•°ç»„
     _dictReset(&d->ht[0]);
     _dictReset(&d->ht[1]);
 
-    // ÉèÖÃÀàĞÍÌØ¶¨º¯Êı
+    // è®¾ç½®ç±»å‹ç‰¹å®šå‡½æ•°
     d->type = type;
 
-    // ÉèÖÃË½ÓĞÊı¾İ
+    // è®¾ç½®ç§æœ‰æ•°æ®
     d->privdata = privDataPtr;
 
-    // ÉèÖÃ¹şÏ£±í rehash ×´Ì¬
+    // è®¾ç½®å“ˆå¸Œè¡¨ rehash çŠ¶æ€
     d->rehashidx = -1;
 
-    // ÉèÖÃ×ÖµäµÄ°²È«µü´úÆ÷ÊıÁ¿
+    // è®¾ç½®å­—å…¸çš„å®‰å…¨è¿­ä»£å™¨æ•°é‡
     d->iterators = 0;
 
     return DICT_OK;
@@ -243,66 +243,66 @@ int _dictInit(dict *d, dictType *type,
 /* Resize the table to the minimal size that contains all the elements,
  * but with the invariant of a USED/BUCKETS ratio near to <= 1 */
 /*
- * ËõĞ¡¸ø¶¨×Öµä
- * ÈÃËüµÄÒÑÓÃ½ÚµãÊıºÍ×Öµä´óĞ¡Ö®¼äµÄ±ÈÂÊ½Ó½ü 1:1
+ * ç¼©å°ç»™å®šå­—å…¸
+ * è®©å®ƒçš„å·²ç”¨èŠ‚ç‚¹æ•°å’Œå­—å…¸å¤§å°ä¹‹é—´çš„æ¯”ç‡æ¥è¿‘ 1:1
  *
- * ·µ»Ø DICT_ERR ±íÊ¾×ÖµäÒÑ¾­ÔÚ rehash £¬»òÕß dict_can_resize Îª¼Ù¡£
+ * è¿”å› DICT_ERR è¡¨ç¤ºå­—å…¸å·²ç»åœ¨ rehash ï¼Œæˆ–è€… dict_can_resize ä¸ºå‡ã€‚
  *
- * ³É¹¦´´½¨Ìå»ı¸üĞ¡µÄ ht[1] £¬¿ÉÒÔ¿ªÊ¼ resize Ê±£¬·µ»Ø DICT_OK¡£
+ * æˆåŠŸåˆ›å»ºä½“ç§¯æ›´å°çš„ ht[1] ï¼Œå¯ä»¥å¼€å§‹ resize æ—¶ï¼Œè¿”å› DICT_OKã€‚
  *
  * T = O(N)
- */ /* rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ı³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(ÕâÀï¾ö¶¨ÊÇ·ñĞèÒªÀ©Õ¹hash)->dictExpand 
-Ëõ¼õhash¹ı³Ì:_dictRehashStep  serverCron->tryResizeHashTables->dictResize(ÕâÀï¾ø¶ÔËõ¼õºóµÄÍ°Êı)->dictExpand */
+ */ /* rehashæ‰©å¤§è°ƒç”¨å…³ç³»è°ƒç”¨è¿‡ç¨‹:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(è¿™é‡Œå†³å®šæ˜¯å¦éœ€è¦æ‰©å±•hash)->dictExpand 
+ç¼©å‡hashè¿‡ç¨‹:_dictRehashStep  serverCron->tryResizeHashTables->dictResize(è¿™é‡Œç»å¯¹ç¼©å‡åçš„æ¡¶æ•°)->dictExpand */
 int dictResize(dict *d)
 {
     int minimal;
 
-    // ²»ÄÜÔÚ¹Ø±Õ rehash »òÕßÕıÔÚ rehash µÄÊ±ºòµ÷ÓÃ
+    // ä¸èƒ½åœ¨å…³é—­ rehash æˆ–è€…æ­£åœ¨ rehash çš„æ—¶å€™è°ƒç”¨
     if (!dict_can_resize || dictIsRehashing(d)) return DICT_ERR;
 
-    // ¼ÆËãÈÃ±ÈÂÊ½Ó½ü 1£º1 ËùĞèÒªµÄ×îÉÙ½ÚµãÊıÁ¿
+    // è®¡ç®—è®©æ¯”ç‡æ¥è¿‘ 1ï¼š1 æ‰€éœ€è¦çš„æœ€å°‘èŠ‚ç‚¹æ•°é‡
     minimal = d->ht[0].used;
     if (minimal < DICT_HT_INITIAL_SIZE)
         minimal = DICT_HT_INITIAL_SIZE;
 
-    // µ÷Õû×ÖµäµÄ´óĞ¡
+    // è°ƒæ•´å­—å…¸çš„å¤§å°
     // T = O(N)
-    return dictExpand(d, minimal); //ÖØĞÂ½¨Í°£¬ÈÃÍ°µÄ¸öÊıÎªminimal×î½Ó½üµÄ2µÄ±¶Êı£¬¶ø½ÚµãÊıÎªminimal,Òò´Ë½ÚµãÊı/Í°Êı¿Ï¶¨Ğ¡ÓÚµÈÓÚ1
+    return dictExpand(d, minimal); //é‡æ–°å»ºæ¡¶ï¼Œè®©æ¡¶çš„ä¸ªæ•°ä¸ºminimalæœ€æ¥è¿‘çš„2çš„å€æ•°ï¼Œè€ŒèŠ‚ç‚¹æ•°ä¸ºminimal,å› æ­¤èŠ‚ç‚¹æ•°/æ¡¶æ•°è‚¯å®šå°äºç­‰äº1
 }
 
 /* Expand or create the hash table */
 /*
- * ´´½¨Ò»¸öĞÂµÄ¹şÏ£±í£¬²¢¸ù¾İ×ÖµäµÄÇé¿ö£¬Ñ¡ÔñÒÔÏÂÆäÖĞÒ»¸ö¶¯×÷À´½øĞĞ£º
+ * åˆ›å»ºä¸€ä¸ªæ–°çš„å“ˆå¸Œè¡¨ï¼Œå¹¶æ ¹æ®å­—å…¸çš„æƒ…å†µï¼Œé€‰æ‹©ä»¥ä¸‹å…¶ä¸­ä¸€ä¸ªåŠ¨ä½œæ¥è¿›è¡Œï¼š
  *
- * 1) Èç¹û×ÖµäµÄ 0 ºÅ¹şÏ£±íÎª¿Õ£¬ÄÇÃ´½«ĞÂ¹şÏ£±íÉèÖÃÎª 0 ºÅ¹şÏ£±í
- * 2) Èç¹û×ÖµäµÄ 0 ºÅ¹şÏ£±í·Ç¿Õ£¬ÄÇÃ´½«ĞÂ¹şÏ£±íÉèÖÃÎª 1 ºÅ¹şÏ£±í£¬
- *    ²¢´ò¿ª×ÖµäµÄ rehash ±êÊ¶£¬Ê¹µÃ³ÌĞò¿ÉÒÔ¿ªÊ¼¶Ô×Öµä½øĞĞ rehash
+ * 1) å¦‚æœå­—å…¸çš„ 0 å·å“ˆå¸Œè¡¨ä¸ºç©ºï¼Œé‚£ä¹ˆå°†æ–°å“ˆå¸Œè¡¨è®¾ç½®ä¸º 0 å·å“ˆå¸Œè¡¨
+ * 2) å¦‚æœå­—å…¸çš„ 0 å·å“ˆå¸Œè¡¨éç©ºï¼Œé‚£ä¹ˆå°†æ–°å“ˆå¸Œè¡¨è®¾ç½®ä¸º 1 å·å“ˆå¸Œè¡¨ï¼Œ
+ *    å¹¶æ‰“å¼€å­—å…¸çš„ rehash æ ‡è¯†ï¼Œä½¿å¾—ç¨‹åºå¯ä»¥å¼€å§‹å¯¹å­—å…¸è¿›è¡Œ rehash
  *
- * size ²ÎÊı²»¹»´ó£¬»òÕß rehash ÒÑ¾­ÔÚ½øĞĞÊ±£¬·µ»Ø DICT_ERR ¡£
+ * size å‚æ•°ä¸å¤Ÿå¤§ï¼Œæˆ–è€… rehash å·²ç»åœ¨è¿›è¡Œæ—¶ï¼Œè¿”å› DICT_ERR ã€‚
  *
- * ³É¹¦´´½¨ 0 ºÅ¹şÏ£±í£¬»òÕß 1 ºÅ¹şÏ£±íÊ±£¬·µ»Ø DICT_OK ¡£
+ * æˆåŠŸåˆ›å»º 0 å·å“ˆå¸Œè¡¨ï¼Œæˆ–è€… 1 å·å“ˆå¸Œè¡¨æ—¶ï¼Œè¿”å› DICT_OK ã€‚
  *
  * T = O(N)
- */ /* rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ı³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(ÕâÀï¾ö¶¨ÊÇ·ñĞèÒªÀ©Õ¹hash)->dictExpand 
-Ëõ¼õhash¹ı³Ì:serverCron->tryResizeHashTables->dictResize(ÕâÀï¾ø¶ÔËõ¼õºóµÄÍ°Êı)->dictExpand */
+ */ /* rehashæ‰©å¤§è°ƒç”¨å…³ç³»è°ƒç”¨è¿‡ç¨‹:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(è¿™é‡Œå†³å®šæ˜¯å¦éœ€è¦æ‰©å±•hash)->dictExpand 
+ç¼©å‡hashè¿‡ç¨‹:serverCron->tryResizeHashTables->dictResize(è¿™é‡Œç»å¯¹ç¼©å‡åçš„æ¡¶æ•°)->dictExpand */
 int dictExpand(dict *d, unsigned long size)
 {
-    // ĞÂ¹şÏ£±í
+    // æ–°å“ˆå¸Œè¡¨
     dictht n; /* the new hash table */
 
-    // ¸ù¾İ size ²ÎÊı£¬¼ÆËã¹şÏ£±íµÄ´óĞ¡
+    // æ ¹æ® size å‚æ•°ï¼Œè®¡ç®—å“ˆå¸Œè¡¨çš„å¤§å°
     // T = O(1)
     unsigned long realsize = _dictNextPower(size);
 
     /* the size is invalid if it is smaller than the number of
      * elements already inside the hash table */
-    // ²»ÄÜÔÚ×ÖµäÕıÔÚ rehash Ê±½øĞĞ
-    // size µÄÖµÒ²²»ÄÜĞ¡ÓÚ 0 ºÅ¹şÏ£±íµÄµ±Ç°ÒÑÊ¹ÓÃ½Úµã
+    // ä¸èƒ½åœ¨å­—å…¸æ­£åœ¨ rehash æ—¶è¿›è¡Œ
+    // size çš„å€¼ä¹Ÿä¸èƒ½å°äº 0 å·å“ˆå¸Œè¡¨çš„å½“å‰å·²ä½¿ç”¨èŠ‚ç‚¹
     if (dictIsRehashing(d) || d->ht[0].used > size)
         return DICT_ERR;
 
     /* Allocate the new hash table and initialize all pointers to NULL */
-    // Îª¹şÏ£±í·ÖÅä¿Õ¼ä£¬²¢½«ËùÓĞÖ¸ÕëÖ¸Ïò NULL
+    // ä¸ºå“ˆå¸Œè¡¨åˆ†é…ç©ºé—´ï¼Œå¹¶å°†æ‰€æœ‰æŒ‡é’ˆæŒ‡å‘ NULL
     n.size = realsize;
     n.sizemask = realsize-1;
     // T = O(N)
@@ -311,25 +311,25 @@ int dictExpand(dict *d, unsigned long size)
 
     /* Is this the first initialization? If so it's not really a rehashing
      * we just set the first hash table so that it can accept keys. */
-    // Èç¹û 0 ºÅ¹şÏ£±íÎª¿Õ£¬ÄÇÃ´ÕâÊÇÒ»´Î³õÊ¼»¯£º
-    // ³ÌĞò½«ĞÂ¹şÏ£±í¸³¸ø 0 ºÅ¹şÏ£±íµÄÖ¸Õë£¬È»ºó×Öµä¾Í¿ÉÒÔ¿ªÊ¼´¦Àí¼üÖµ¶ÔÁË¡£
+    // å¦‚æœ 0 å·å“ˆå¸Œè¡¨ä¸ºç©ºï¼Œé‚£ä¹ˆè¿™æ˜¯ä¸€æ¬¡åˆå§‹åŒ–ï¼š
+    // ç¨‹åºå°†æ–°å“ˆå¸Œè¡¨èµ‹ç»™ 0 å·å“ˆå¸Œè¡¨çš„æŒ‡é’ˆï¼Œç„¶åå­—å…¸å°±å¯ä»¥å¼€å§‹å¤„ç†é”®å€¼å¯¹äº†ã€‚
     if (d->ht[0].table == NULL) {
         d->ht[0] = n;
         return DICT_OK;
     }
 
     /* Prepare a second hash table for incremental rehashing */
-    // Èç¹û 0 ºÅ¹şÏ£±í·Ç¿Õ£¬ÄÇÃ´ÕâÊÇÒ»´Î rehash £º
-    // ³ÌĞò½«ĞÂ¹şÏ£±íÉèÖÃÎª 1 ºÅ¹şÏ£±í£¬
-    // ²¢½«×ÖµäµÄ rehash ±êÊ¶´ò¿ª£¬ÈÃ³ÌĞò¿ÉÒÔ¿ªÊ¼¶Ô×Öµä½øĞĞ rehash
+    // å¦‚æœ 0 å·å“ˆå¸Œè¡¨éç©ºï¼Œé‚£ä¹ˆè¿™æ˜¯ä¸€æ¬¡ rehash ï¼š
+    // ç¨‹åºå°†æ–°å“ˆå¸Œè¡¨è®¾ç½®ä¸º 1 å·å“ˆå¸Œè¡¨ï¼Œ
+    // å¹¶å°†å­—å…¸çš„ rehash æ ‡è¯†æ‰“å¼€ï¼Œè®©ç¨‹åºå¯ä»¥å¼€å§‹å¯¹å­—å…¸è¿›è¡Œ rehash
     d->ht[1] = n;
     d->rehashidx = 0;
     return DICT_OK;
 
-    /* Ë³´øÒ»Ìá£¬ÉÏÃæµÄ´úÂë¿ÉÒÔÖØ¹¹³ÉÒÔÏÂĞÎÊ½£º
+    /* é¡ºå¸¦ä¸€æï¼Œä¸Šé¢çš„ä»£ç å¯ä»¥é‡æ„æˆä»¥ä¸‹å½¢å¼ï¼š
     
     if (d->ht[0].table == NULL) {
-        // ³õÊ¼»¯
+        // åˆå§‹åŒ–
         d->ht[0] = n;
     } else {
         // rehash 
@@ -345,85 +345,85 @@ int dictExpand(dict *d, unsigned long size)
 /* Performs N steps of incremental rehashing. Returns 1 if there are still
  * keys to move from the old to the new hash table, otherwise 0 is returned.
  *
- * Ö´ĞĞ N ²½½¥½øÊ½ rehash ¡£
+ * æ‰§è¡Œ N æ­¥æ¸è¿›å¼ rehash ã€‚
  *
- * ·µ»Ø 1 ±íÊ¾ÈÔÓĞ¼üĞèÒª´Ó 0 ºÅ¹şÏ£±íÒÆ¶¯µ½ 1 ºÅ¹şÏ£±í£¬
- * ·µ»Ø 0 Ôò±íÊ¾ËùÓĞ¼ü¶¼ÒÑ¾­Ç¨ÒÆÍê±Ï¡£
+ * è¿”å› 1 è¡¨ç¤ºä»æœ‰é”®éœ€è¦ä» 0 å·å“ˆå¸Œè¡¨ç§»åŠ¨åˆ° 1 å·å“ˆå¸Œè¡¨ï¼Œ
+ * è¿”å› 0 åˆ™è¡¨ç¤ºæ‰€æœ‰é”®éƒ½å·²ç»è¿ç§»å®Œæ¯•ã€‚
  *
  * Note that a rehashing step consists in moving a bucket (that may have more
  * than one key as we use chaining) from the old to the new hash table.
  *
- * ×¢Òâ£¬Ã¿²½ rehash ¶¼ÊÇÒÔÒ»¸ö¹şÏ£±íË÷Òı£¨Í°£©×÷Îªµ¥Î»µÄ£¬
- * Ò»¸öÍ°Àï¿ÉÄÜ»áÓĞ¶à¸ö½Úµã£¬
- * ±» rehash µÄÍ°ÀïµÄËùÓĞ½Úµã¶¼»á±»ÒÆ¶¯µ½ĞÂ¹şÏ£±í¡£
+ * æ³¨æ„ï¼Œæ¯æ­¥ rehash éƒ½æ˜¯ä»¥ä¸€ä¸ªå“ˆå¸Œè¡¨ç´¢å¼•ï¼ˆæ¡¶ï¼‰ä½œä¸ºå•ä½çš„ï¼Œ
+ * ä¸€ä¸ªæ¡¶é‡Œå¯èƒ½ä¼šæœ‰å¤šä¸ªèŠ‚ç‚¹ï¼Œ
+ * è¢« rehash çš„æ¡¶é‡Œçš„æ‰€æœ‰èŠ‚ç‚¹éƒ½ä¼šè¢«ç§»åŠ¨åˆ°æ–°å“ˆå¸Œè¡¨ã€‚
  *
  * T = O(N)
  */
 int dictRehash(dict *d, int n) { 
-//rehash·ÖÎªÖ÷¶¯rehash£¬dictRehashMillisecondsÒ²¾ÍÊÇ¶¨Ê±È¥rehash£¬ÅÂÓĞµÄKV³¤Ê±¼ä²»·ÃÎÊÒ»Ö±²»Ç¨ÒÆµ½ht[1],
-//ÁíÒ»ÖÖÊÇÓÉ¿Í»§¶Ë·ÃÎÊµÄÊ±ºò±»¶¯½øĞĞrehash£¬¼û_dictRehashStep
+//rehashåˆ†ä¸ºä¸»åŠ¨rehashï¼ŒdictRehashMillisecondsä¹Ÿå°±æ˜¯å®šæ—¶å»rehashï¼Œæ€•æœ‰çš„KVé•¿æ—¶é—´ä¸è®¿é—®ä¸€ç›´ä¸è¿ç§»åˆ°ht[1],
+//å¦ä¸€ç§æ˜¯ç”±å®¢æˆ·ç«¯è®¿é—®çš„æ—¶å€™è¢«åŠ¨è¿›è¡Œrehashï¼Œè§_dictRehashStep
 
-    // Ö»¿ÉÒÔÔÚ rehash ½øĞĞÖĞÊ±Ö´ĞĞ
+    // åªå¯ä»¥åœ¨ rehash è¿›è¡Œä¸­æ—¶æ‰§è¡Œ
     if (!dictIsRehashing(d)) return 0;
 
-    // ½øĞĞ N ²½Ç¨ÒÆ
+    // è¿›è¡Œ N æ­¥è¿ç§»
     // T = O(N)
     while(n--) {
         dictEntry *de, *nextde;
 
         /* Check if we already rehashed the whole table... */
-        // Èç¹û 0 ºÅ¹şÏ£±íÎª¿Õ£¬ÄÇÃ´±íÊ¾ rehash Ö´ĞĞÍê±Ï
+        // å¦‚æœ 0 å·å“ˆå¸Œè¡¨ä¸ºç©ºï¼Œé‚£ä¹ˆè¡¨ç¤º rehash æ‰§è¡Œå®Œæ¯•
         // T = O(1)
         if (d->ht[0].used == 0) {
-            // ÊÍ·Å 0 ºÅ¹şÏ£±í
+            // é‡Šæ”¾ 0 å·å“ˆå¸Œè¡¨
             zfree(d->ht[0].table);
-            // ½«Ô­À´µÄ 1 ºÅ¹şÏ£±íÉèÖÃÎªĞÂµÄ 0 ºÅ¹şÏ£±í
+            // å°†åŸæ¥çš„ 1 å·å“ˆå¸Œè¡¨è®¾ç½®ä¸ºæ–°çš„ 0 å·å“ˆå¸Œè¡¨
             d->ht[0] = d->ht[1];
-            // ÖØÖÃ¾ÉµÄ 1 ºÅ¹şÏ£±í
+            // é‡ç½®æ—§çš„ 1 å·å“ˆå¸Œè¡¨
             _dictReset(&d->ht[1]);
-            // ¹Ø±Õ rehash ±êÊ¶
+            // å…³é—­ rehash æ ‡è¯†
             d->rehashidx = -1;
-            // ·µ»Ø 0 £¬Ïòµ÷ÓÃÕß±íÊ¾ rehash ÒÑ¾­Íê³É
+            // è¿”å› 0 ï¼Œå‘è°ƒç”¨è€…è¡¨ç¤º rehash å·²ç»å®Œæˆ
             return 0;
         }
 
         /* Note that rehashidx can't overflow as we are sure there are more
          * elements because ht[0].used != 0 */
-        // È·±£ rehashidx Ã»ÓĞÔ½½ç
+        // ç¡®ä¿ rehashidx æ²¡æœ‰è¶Šç•Œ
         assert(d->ht[0].size > (unsigned)d->rehashidx);
 
-        // ÂÔ¹ıÊı×éÖĞÎª¿ÕµÄË÷Òı£¬ÕÒµ½ÏÂÒ»¸ö·Ç¿ÕË÷Òı
+        // ç•¥è¿‡æ•°ç»„ä¸­ä¸ºç©ºçš„ç´¢å¼•ï¼Œæ‰¾åˆ°ä¸‹ä¸€ä¸ªéç©ºç´¢å¼•
         while(d->ht[0].table[d->rehashidx] == NULL) d->rehashidx++;
 
-        // Ö¸Ïò¸ÃË÷ÒıµÄÁ´±í±íÍ·½Úµã
+        // æŒ‡å‘è¯¥ç´¢å¼•çš„é“¾è¡¨è¡¨å¤´èŠ‚ç‚¹
         de = d->ht[0].table[d->rehashidx];
         /* Move all the keys in this bucket from the old to the new hash HT */
-        // ½«Á´±íÖĞµÄËùÓĞ½ÚµãÇ¨ÒÆµ½ĞÂ¹şÏ£±í
+        // å°†é“¾è¡¨ä¸­çš„æ‰€æœ‰èŠ‚ç‚¹è¿ç§»åˆ°æ–°å“ˆå¸Œè¡¨
         // T = O(1)
-        while(de) { /* ÔÚhdelÒ»´ÎÉ¾³ıÊıÊ®ÌõµÄÊ±ºò£¬Èç¹û¸ÕºÃ´¥·¢dictRehash,ÕâÀï¿ÉÄÜ»á×èÈû£¬ÓĞ¿ÉÄÜ¸ÃtableÁ´±íÉÏµÄÊı¾İÁ¿ºÜ´ó */
+        while(de) { /* åœ¨hdelä¸€æ¬¡åˆ é™¤æ•°åæ¡çš„æ—¶å€™ï¼Œå¦‚æœåˆšå¥½è§¦å‘dictRehash,è¿™é‡Œå¯èƒ½ä¼šé˜»å¡ï¼Œæœ‰å¯èƒ½è¯¥tableé“¾è¡¨ä¸Šçš„æ•°æ®é‡å¾ˆå¤§ */
             unsigned int h;
 
-            // ±£´æÏÂ¸ö½ÚµãµÄÖ¸Õë
+            // ä¿å­˜ä¸‹ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆ
             nextde = de->next;
 
             /* Get the index in the new hash table */
-            // ¼ÆËãĞÂ¹şÏ£±íµÄ¹şÏ£Öµ£¬ÒÔ¼°½Úµã²åÈëµÄË÷ÒıÎ»ÖÃ
+            // è®¡ç®—æ–°å“ˆå¸Œè¡¨çš„å“ˆå¸Œå€¼ï¼Œä»¥åŠèŠ‚ç‚¹æ’å…¥çš„ç´¢å¼•ä½ç½®
             h = dictHashKey(d, de->key) & d->ht[1].sizemask;
 
-            // ²åÈë½Úµãµ½ĞÂ¹şÏ£±í
+            // æ’å…¥èŠ‚ç‚¹åˆ°æ–°å“ˆå¸Œè¡¨
             de->next = d->ht[1].table[h];
             d->ht[1].table[h] = de;
 
-            // ¸üĞÂ¼ÆÊıÆ÷
+            // æ›´æ–°è®¡æ•°å™¨
             d->ht[0].used--;
             d->ht[1].used++;
 
-            // ¼ÌĞø´¦ÀíÏÂ¸ö½Úµã
+            // ç»§ç»­å¤„ç†ä¸‹ä¸ªèŠ‚ç‚¹
             de = nextde;
         }
-        // ½«¸ÕÇ¨ÒÆÍêµÄ¹şÏ£±íË÷ÒıµÄÖ¸ÕëÉèÎª¿Õ
+        // å°†åˆšè¿ç§»å®Œçš„å“ˆå¸Œè¡¨ç´¢å¼•çš„æŒ‡é’ˆè®¾ä¸ºç©º
         d->ht[0].table[d->rehashidx] = NULL;
-        // ¸üĞÂ rehash Ë÷Òı
+        // æ›´æ–° rehash ç´¢å¼•
         d->rehashidx++;
     }
 
@@ -431,7 +431,7 @@ int dictRehash(dict *d, int n) {
 }
 
 /*
- * ·µ»ØÒÔºÁÃëÎªµ¥Î»µÄ UNIX Ê±¼ä´Á
+ * è¿”å›ä»¥æ¯«ç§’ä¸ºå•ä½çš„ UNIX æ—¶é—´æˆ³
  *
  * T = O(1)
  */
@@ -444,20 +444,20 @@ long long timeInMilliseconds(void) {
 
 /* Rehash for an amount of time between ms milliseconds and ms+1 milliseconds */
 /*
- * ÔÚ¸ø¶¨ºÁÃëÊıÄÚ£¬ÒÔ 100 ²½Îªµ¥Î»£¬¶Ô×Öµä½øĞĞ rehash ¡£
+ * åœ¨ç»™å®šæ¯«ç§’æ•°å†…ï¼Œä»¥ 100 æ­¥ä¸ºå•ä½ï¼Œå¯¹å­—å…¸è¿›è¡Œ rehash ã€‚
  *
  * T = O(N)
  */
-    //rehash·ÖÎªÖ÷¶¯rehash£¬dictRehashMillisecondsÒ²¾ÍÊÇ¶¨Ê±È¥rehash£¬ÅÂÓĞµÄKV³¤Ê±¼ä²»·ÃÎÊÒ»Ö±²»Ç¨ÒÆµ½ht[1],
-    //ÁíÒ»ÖÖÊÇÓÉ¿Í»§¶Ë·ÃÎÊµÄÊ±ºò±»¶¯½øĞĞrehash£¬¼û_dictRehashStep
+    //rehashåˆ†ä¸ºä¸»åŠ¨rehashï¼ŒdictRehashMillisecondsä¹Ÿå°±æ˜¯å®šæ—¶å»rehashï¼Œæ€•æœ‰çš„KVé•¿æ—¶é—´ä¸è®¿é—®ä¸€ç›´ä¸è¿ç§»åˆ°ht[1],
+    //å¦ä¸€ç§æ˜¯ç”±å®¢æˆ·ç«¯è®¿é—®çš„æ—¶å€™è¢«åŠ¨è¿›è¡Œrehashï¼Œè§_dictRehashStep
 int dictRehashMilliseconds(dict *d, int ms) {
-    // ¼ÇÂ¼¿ªÊ¼Ê±¼ä
+    // è®°å½•å¼€å§‹æ—¶é—´
     long long start = timeInMilliseconds();
     int rehashes = 0;
 
     while(dictRehash(d,100)) {
         rehashes += 100;
-        // Èç¹ûÊ±¼äÒÑ¹ı£¬Ìø³ö
+        // å¦‚æœæ—¶é—´å·²è¿‡ï¼Œè·³å‡º
         if (timeInMilliseconds()-start > ms) break;
     }
 
@@ -469,50 +469,50 @@ int dictRehashMilliseconds(dict *d, int ms) {
  * middle of a rehashing we can't mess with the two hash tables otherwise
  * some element can be missed or duplicated.
  *
- * ÔÚ×Öµä²»´æÔÚ°²È«µü´úÆ÷µÄÇé¿öÏÂ£¬¶Ô×Öµä½øĞĞµ¥²½ rehash ¡£
+ * åœ¨å­—å…¸ä¸å­˜åœ¨å®‰å…¨è¿­ä»£å™¨çš„æƒ…å†µä¸‹ï¼Œå¯¹å­—å…¸è¿›è¡Œå•æ­¥ rehash ã€‚
  *
- * ×ÖµäÓĞ°²È«µü´úÆ÷µÄÇé¿öÏÂ²»ÄÜ½øĞĞ rehash £¬
- * ÒòÎªÁ½ÖÖ²»Í¬µÄµü´úºÍĞŞ¸Ä²Ù×÷¿ÉÄÜ»áÅªÂÒ×Öµä¡£
+ * å­—å…¸æœ‰å®‰å…¨è¿­ä»£å™¨çš„æƒ…å†µä¸‹ä¸èƒ½è¿›è¡Œ rehash ï¼Œ
+ * å› ä¸ºä¸¤ç§ä¸åŒçš„è¿­ä»£å’Œä¿®æ”¹æ“ä½œå¯èƒ½ä¼šå¼„ä¹±å­—å…¸ã€‚
  *
  * This function is called by common lookup or update operations in the
  * dictionary so that the hash table automatically migrates from H1 to H2
  * while it is actively used. 
  *
- * Õâ¸öº¯Êı±»¶à¸öÍ¨ÓÃµÄ²éÕÒ¡¢¸üĞÂ²Ù×÷µ÷ÓÃ£¬
- * Ëü¿ÉÒÔÈÃ×ÖµäÔÚ±»Ê¹ÓÃµÄÍ¬Ê±½øĞĞ rehash ¡£
+ * è¿™ä¸ªå‡½æ•°è¢«å¤šä¸ªé€šç”¨çš„æŸ¥æ‰¾ã€æ›´æ–°æ“ä½œè°ƒç”¨ï¼Œ
+ * å®ƒå¯ä»¥è®©å­—å…¸åœ¨è¢«ä½¿ç”¨çš„åŒæ—¶è¿›è¡Œ rehash ã€‚
  *
  * T = O(1)
  */
-    //rehash·ÖÎªÖ÷¶¯rehash£¬dictRehashMillisecondsÒ²¾ÍÊÇ¶¨Ê±È¥rehash£¬ÅÂÓĞµÄKV³¤Ê±¼ä²»·ÃÎÊÒ»Ö±²»Ç¨ÒÆµ½ht[1],
-    //ÁíÒ»ÖÖÊÇÓÉ¿Í»§¶Ë·ÃÎÊµÄÊ±ºò±»¶¯½øĞĞrehash£¬¼û_dictRehashStep
+    //rehashåˆ†ä¸ºä¸»åŠ¨rehashï¼ŒdictRehashMillisecondsä¹Ÿå°±æ˜¯å®šæ—¶å»rehashï¼Œæ€•æœ‰çš„KVé•¿æ—¶é—´ä¸è®¿é—®ä¸€ç›´ä¸è¿ç§»åˆ°ht[1],
+    //å¦ä¸€ç§æ˜¯ç”±å®¢æˆ·ç«¯è®¿é—®çš„æ—¶å€™è¢«åŠ¨è¿›è¡Œrehashï¼Œè§_dictRehashStep
 static void _dictRehashStep(dict *d) {
     if (d->iterators == 0) dictRehash(d,1);
 }
 
 /* Add an element to the target hash table */
 /*
- * ³¢ÊÔ½«¸ø¶¨¼üÖµ¶ÔÌí¼Óµ½×ÖµäÖĞ
+ * å°è¯•å°†ç»™å®šé”®å€¼å¯¹æ·»åŠ åˆ°å­—å…¸ä¸­
  *
- * Ö»ÓĞ¸ø¶¨¼ü key ²»´æÔÚÓÚ×ÖµäÊ±£¬Ìí¼Ó²Ù×÷²Å»á³É¹¦
+ * åªæœ‰ç»™å®šé”® key ä¸å­˜åœ¨äºå­—å…¸æ—¶ï¼Œæ·»åŠ æ“ä½œæ‰ä¼šæˆåŠŸ
  *
- * Ìí¼Ó³É¹¦·µ»Ø DICT_OK £¬Ê§°Ü·µ»Ø DICT_ERR
+ * æ·»åŠ æˆåŠŸè¿”å› DICT_OK ï¼Œå¤±è´¥è¿”å› DICT_ERR
  *
- * ×î»µ T = O(N) £¬Æ½Ì² O(1) 
- */ // ½«¸ø¶¨µÄ¼üÖµ¶ÔÌí¼Óµ½×ÖµäÀïÃæ¡£      
-int dictAdd(dict *d, void *key, void *val) //°ÑkeyºÍval¶ÔÓ¦µÄobjÌí¼Óµ½Ò»¸öentryÖĞ 
+ * æœ€å T = O(N) ï¼Œå¹³æ»© O(1) 
+ */ // å°†ç»™å®šçš„é”®å€¼å¯¹æ·»åŠ åˆ°å­—å…¸é‡Œé¢ã€‚      
+int dictAdd(dict *d, void *key, void *val) //æŠŠkeyå’Œvalå¯¹åº”çš„objæ·»åŠ åˆ°ä¸€ä¸ªentryä¸­ 
 {
-    // ³¢ÊÔÌí¼Ó¼üµ½×Öµä£¬²¢·µ»Ø°üº¬ÁËÕâ¸ö¼üµÄĞÂ¹şÏ£½Úµã
+    // å°è¯•æ·»åŠ é”®åˆ°å­—å…¸ï¼Œå¹¶è¿”å›åŒ…å«äº†è¿™ä¸ªé”®çš„æ–°å“ˆå¸ŒèŠ‚ç‚¹
     // T = O(N)
     dictEntry *entry = dictAddRaw(d,key);
 
-    // ¼üÒÑ´æÔÚ£¬Ìí¼ÓÊ§°Ü
+    // é”®å·²å­˜åœ¨ï¼Œæ·»åŠ å¤±è´¥
     if (!entry) return DICT_ERR;
 
-    // ¼ü²»´æÔÚ£¬ÉèÖÃ½ÚµãµÄÖµ
+    // é”®ä¸å­˜åœ¨ï¼Œè®¾ç½®èŠ‚ç‚¹çš„å€¼
     // T = O(1)
     dictSetVal(d, entry, val);
 
-    // Ìí¼Ó³É¹¦
+    // æ·»åŠ æˆåŠŸ
     return DICT_OK;
 }
 
@@ -532,49 +532,49 @@ int dictAdd(dict *d, void *key, void *val) //°ÑkeyºÍval¶ÔÓ¦µÄobjÌí¼Óµ½Ò»¸öentryÖ
  * If key was added, the hash entry is returned to be manipulated by the caller.
  */
 /*
- * ³¢ÊÔ½«¼ü²åÈëµ½×ÖµäÖĞ
+ * å°è¯•å°†é”®æ’å…¥åˆ°å­—å…¸ä¸­
  *
- * Èç¹û¼üÒÑ¾­ÔÚ×Öµä´æÔÚ£¬ÄÇÃ´·µ»Ø NULL
+ * å¦‚æœé”®å·²ç»åœ¨å­—å…¸å­˜åœ¨ï¼Œé‚£ä¹ˆè¿”å› NULL
  *
- * Èç¹û¼ü²»´æÔÚ£¬ÄÇÃ´³ÌĞò´´½¨ĞÂµÄ¹şÏ£½Úµã£¬
- * ½«½ÚµãºÍ¼ü¹ØÁª£¬²¢²åÈëµ½×Öµä£¬È»ºó·µ»Ø½Úµã±¾Éí¡£
+ * å¦‚æœé”®ä¸å­˜åœ¨ï¼Œé‚£ä¹ˆç¨‹åºåˆ›å»ºæ–°çš„å“ˆå¸ŒèŠ‚ç‚¹ï¼Œ
+ * å°†èŠ‚ç‚¹å’Œé”®å…³è”ï¼Œå¹¶æ’å…¥åˆ°å­—å…¸ï¼Œç„¶åè¿”å›èŠ‚ç‚¹æœ¬èº«ã€‚
  *
  * T = O(N)
- */ /* rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ı³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(ÕâÀï¾ö¶¨ÊÇ·ñĞèÒªÀ©Õ¹hash)->dictExpand 
-Ëõ¼õhash¹ı³Ì:serverCron->tryResizeHashTables->dictResize(ÕâÀï¾ø¶ÔËõ¼õºóµÄÍ°Êı)->dictExpand */
+ */ /* rehashæ‰©å¤§è°ƒç”¨å…³ç³»è°ƒç”¨è¿‡ç¨‹:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(è¿™é‡Œå†³å®šæ˜¯å¦éœ€è¦æ‰©å±•hash)->dictExpand 
+ç¼©å‡hashè¿‡ç¨‹:serverCron->tryResizeHashTables->dictResize(è¿™é‡Œç»å¯¹ç¼©å‡åçš„æ¡¶æ•°)->dictExpand */
 dictEntry *dictAddRaw(dict *d, void *key)
 {
     int index;
     dictEntry *entry;
     dictht *ht;
 
-    // Èç¹ûÌõ¼şÔÊĞíµÄ»°£¬½øĞĞµ¥²½ rehash
+    // å¦‚æœæ¡ä»¶å…è®¸çš„è¯ï¼Œè¿›è¡Œå•æ­¥ rehash
     // T = O(1)
     if (dictIsRehashing(d)) _dictRehashStep(d);
 
     /* Get the index of the new element, or -1 if
      * the element already exists. */
-    // ¼ÆËã¼üÔÚ¹şÏ£±íÖĞµÄË÷ÒıÖµ
-    // Èç¹ûÖµÎª -1 £¬ÄÇÃ´±íÊ¾¼üÒÑ¾­´æÔÚ
+    // è®¡ç®—é”®åœ¨å“ˆå¸Œè¡¨ä¸­çš„ç´¢å¼•å€¼
+    // å¦‚æœå€¼ä¸º -1 ï¼Œé‚£ä¹ˆè¡¨ç¤ºé”®å·²ç»å­˜åœ¨
     // T = O(N)
     if ((index = _dictKeyIndex(d, key)) == -1)
         return NULL;
 
     // T = O(1)
     /* Allocate the memory and store the new entry */
-    // Èç¹û×ÖµäÕıÔÚ rehash £¬ÄÇÃ´½«ĞÂ¼üÌí¼Óµ½ 1 ºÅ¹şÏ£±í
-    // ·ñÔò£¬½«ĞÂ¼üÌí¼Óµ½ 0 ºÅ¹şÏ£±í
+    // å¦‚æœå­—å…¸æ­£åœ¨ rehash ï¼Œé‚£ä¹ˆå°†æ–°é”®æ·»åŠ åˆ° 1 å·å“ˆå¸Œè¡¨
+    // å¦åˆ™ï¼Œå°†æ–°é”®æ·»åŠ åˆ° 0 å·å“ˆå¸Œè¡¨
     ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0];
-    // ÎªĞÂ½Úµã·ÖÅä¿Õ¼ä
+    // ä¸ºæ–°èŠ‚ç‚¹åˆ†é…ç©ºé—´
     entry = zmalloc(sizeof(*entry));
-    // ½«ĞÂ½Úµã²åÈëµ½Á´±í±íÍ·
+    // å°†æ–°èŠ‚ç‚¹æ’å…¥åˆ°é“¾è¡¨è¡¨å¤´
     entry->next = ht->table[index];
     ht->table[index] = entry;
-    // ¸üĞÂ¹şÏ£±íÒÑÊ¹ÓÃ½ÚµãÊıÁ¿
+    // æ›´æ–°å“ˆå¸Œè¡¨å·²ä½¿ç”¨èŠ‚ç‚¹æ•°é‡
     ht->used++;
 
     /* Set the hash entry fields. */
-    // ÉèÖÃĞÂ½ÚµãµÄ¼ü
+    // è®¾ç½®æ–°èŠ‚ç‚¹çš„é”®
     // T = O(1)
     dictSetKey(d, entry, key);
 
@@ -583,31 +583,31 @@ dictEntry *dictAddRaw(dict *d, void *key)
 
 /* Add an element, discarding the old if the key already exists.
  *
- * ½«¸ø¶¨µÄ¼üÖµ¶ÔÌí¼Óµ½×ÖµäÖĞ£¬Èç¹û¼üÒÑ¾­´æÔÚ£¬ÄÇÃ´É¾³ı¾ÉÓĞµÄ¼üÖµ¶Ô¡£
+ * å°†ç»™å®šçš„é”®å€¼å¯¹æ·»åŠ åˆ°å­—å…¸ä¸­ï¼Œå¦‚æœé”®å·²ç»å­˜åœ¨ï¼Œé‚£ä¹ˆåˆ é™¤æ—§æœ‰çš„é”®å€¼å¯¹ã€‚
  *
  * Return 1 if the key was added from scratch, 0 if there was already an
  * element with such key and dictReplace() just performed a value update
  * operation. 
  *
- * Èç¹û¼üÖµ¶ÔÎªÈ«ĞÂÌí¼Ó£¬ÄÇÃ´·µ»Ø 1 ¡£
- * Èç¹û¼üÖµ¶ÔÊÇÍ¨¹ı¶ÔÔ­ÓĞµÄ¼üÖµ¶Ô¸üĞÂµÃÀ´µÄ£¬ÄÇÃ´·µ»Ø 0 ¡£
+ * å¦‚æœé”®å€¼å¯¹ä¸ºå…¨æ–°æ·»åŠ ï¼Œé‚£ä¹ˆè¿”å› 1 ã€‚
+ * å¦‚æœé”®å€¼å¯¹æ˜¯é€šè¿‡å¯¹åŸæœ‰çš„é”®å€¼å¯¹æ›´æ–°å¾—æ¥çš„ï¼Œé‚£ä¹ˆè¿”å› 0 ã€‚
  *
  * T = O(N)
- */ //½«¸ø¶¨µÄ¼üÖµ¶ÔÌí¼Óµ½×ÖµäÀïÃæ£¬ Èç¹û¼üÒÑ¾­´æÔÚÓÚ×Öµä£¬ÄÇÃ´ÓÃĞÂÖµÈ¡´úÔ­ÓĞµÄÖµ¡£ 
+ */ //å°†ç»™å®šçš„é”®å€¼å¯¹æ·»åŠ åˆ°å­—å…¸é‡Œé¢ï¼Œ å¦‚æœé”®å·²ç»å­˜åœ¨äºå­—å…¸ï¼Œé‚£ä¹ˆç”¨æ–°å€¼å–ä»£åŸæœ‰çš„å€¼ã€‚ 
 int dictReplace(dict *d, void *key, void *val)
 {
     dictEntry *entry, auxentry;
 
     /* Try to add the element. If the key
      * does not exists dictAdd will suceed. */
-    // ³¢ÊÔÖ±½Ó½«¼üÖµ¶ÔÌí¼Óµ½×Öµä
-    // Èç¹û¼ü key ²»´æÔÚµÄ»°£¬Ìí¼Ó»á³É¹¦
+    // å°è¯•ç›´æ¥å°†é”®å€¼å¯¹æ·»åŠ åˆ°å­—å…¸
+    // å¦‚æœé”® key ä¸å­˜åœ¨çš„è¯ï¼Œæ·»åŠ ä¼šæˆåŠŸ
     // T = O(N)
     if (dictAdd(d, key, val) == DICT_OK)
         return 1;
 
     /* It already exists, get the entry */
-    // ÔËĞĞµ½ÕâÀï£¬ËµÃ÷¼ü key ÒÑ¾­´æÔÚ£¬ÄÇÃ´ÕÒ³ö°üº¬Õâ¸ö key µÄ½Úµã
+    // è¿è¡Œåˆ°è¿™é‡Œï¼Œè¯´æ˜é”® key å·²ç»å­˜åœ¨ï¼Œé‚£ä¹ˆæ‰¾å‡ºåŒ…å«è¿™ä¸ª key çš„èŠ‚ç‚¹
     // T = O(1)
     entry = dictFind(d, key);
     /* Set the new value and free the old one. Note that it is important
@@ -615,12 +615,12 @@ int dictReplace(dict *d, void *key, void *val)
      * as the previous one. In this context, think to reference counting,
      * you want to increment (set), and then decrement (free), and not the
      * reverse. */
-    // ÏÈ±£´æÔ­ÓĞµÄÖµµÄÖ¸Õë
+    // å…ˆä¿å­˜åŸæœ‰çš„å€¼çš„æŒ‡é’ˆ
     auxentry = *entry;
-    // È»ºóÉèÖÃĞÂµÄÖµ
+    // ç„¶åè®¾ç½®æ–°çš„å€¼
     // T = O(1)
     dictSetVal(d, entry, val);
-    // È»ºóÊÍ·Å¾ÉÖµ
+    // ç„¶åé‡Šæ”¾æ—§å€¼
     // T = O(1)
     dictFreeVal(d, &auxentry);
 
@@ -634,35 +634,35 @@ int dictReplace(dict *d, void *key, void *val)
  *
  * See dictAddRaw() for more information. */
 /*
- * dictAddRaw() ¸ù¾İ¸ø¶¨ key ÊÍ·Å´æÔÚ£¬Ö´ĞĞÒÔÏÂ¶¯×÷£º
+ * dictAddRaw() æ ¹æ®ç»™å®š key é‡Šæ”¾å­˜åœ¨ï¼Œæ‰§è¡Œä»¥ä¸‹åŠ¨ä½œï¼š
  *
- * 1) key ÒÑ¾­´æÔÚ£¬·µ»Ø°üº¬¸Ã key µÄ×Öµä½Úµã
- * 2) key ²»´æÔÚ£¬ÄÇÃ´½« key Ìí¼Óµ½×Öµä
+ * 1) key å·²ç»å­˜åœ¨ï¼Œè¿”å›åŒ…å«è¯¥ key çš„å­—å…¸èŠ‚ç‚¹
+ * 2) key ä¸å­˜åœ¨ï¼Œé‚£ä¹ˆå°† key æ·»åŠ åˆ°å­—å…¸
  *
- * ²»ÂÛ·¢ÉúÒÔÉÏµÄÄÄÒ»ÖÖÇé¿ö£¬
- * dictAddRaw() ¶¼×ÜÊÇ·µ»Ø°üº¬¸ø¶¨ key µÄ×Öµä½Úµã¡£
+ * ä¸è®ºå‘ç”Ÿä»¥ä¸Šçš„å“ªä¸€ç§æƒ…å†µï¼Œ
+ * dictAddRaw() éƒ½æ€»æ˜¯è¿”å›åŒ…å«ç»™å®š key çš„å­—å…¸èŠ‚ç‚¹ã€‚
  *
  * T = O(N)
  */
 dictEntry *dictReplaceRaw(dict *d, void *key) {
     
-    // Ê¹ÓÃ key ÔÚ×ÖµäÖĞ²éÕÒ½Úµã
+    // ä½¿ç”¨ key åœ¨å­—å…¸ä¸­æŸ¥æ‰¾èŠ‚ç‚¹
     // T = O(1)
     dictEntry *entry = dictFind(d,key);
 
-    // Èç¹û½ÚµãÕÒµ½ÁËÖ±½Ó·µ»Ø½Úµã£¬·ñÔòÌí¼Ó²¢·µ»ØÒ»¸öĞÂ½Úµã
+    // å¦‚æœèŠ‚ç‚¹æ‰¾åˆ°äº†ç›´æ¥è¿”å›èŠ‚ç‚¹ï¼Œå¦åˆ™æ·»åŠ å¹¶è¿”å›ä¸€ä¸ªæ–°èŠ‚ç‚¹
     // T = O(N)
     return entry ? entry : dictAddRaw(d,key);
 }
 
 /* Search and remove an element */
 /*
- * ²éÕÒ²¢É¾³ı°üº¬¸ø¶¨¼üµÄ½Úµã
+ * æŸ¥æ‰¾å¹¶åˆ é™¤åŒ…å«ç»™å®šé”®çš„èŠ‚ç‚¹
  *
- * ²ÎÊı nofree ¾ö¶¨ÊÇ·ñµ÷ÓÃ¼üºÍÖµµÄÊÍ·Åº¯Êı
- * 0 ±íÊ¾µ÷ÓÃ£¬1 ±íÊ¾²»µ÷ÓÃ
+ * å‚æ•° nofree å†³å®šæ˜¯å¦è°ƒç”¨é”®å’Œå€¼çš„é‡Šæ”¾å‡½æ•°
+ * 0 è¡¨ç¤ºè°ƒç”¨ï¼Œ1 è¡¨ç¤ºä¸è°ƒç”¨
  *
- * ÕÒµ½²¢³É¹¦É¾³ı·µ»Ø DICT_OK £¬Ã»ÕÒµ½Ôò·µ»Ø DICT_ERR
+ * æ‰¾åˆ°å¹¶æˆåŠŸåˆ é™¤è¿”å› DICT_OK ï¼Œæ²¡æ‰¾åˆ°åˆ™è¿”å› DICT_ERR
  *
  * T = O(1)
  */
@@ -672,51 +672,51 @@ static int dictGenericDelete(dict *d, const void *key, int nofree)
     dictEntry *he, *prevHe;
     int table;
 
-    // ×Öµä£¨µÄ¹şÏ£±í£©Îª¿Õ
+    // å­—å…¸ï¼ˆçš„å“ˆå¸Œè¡¨ï¼‰ä¸ºç©º
     if (d->ht[0].size == 0) return DICT_ERR; /* d->ht[0].table is NULL */
 
-    // ½øĞĞµ¥²½ rehash £¬T = O(1)
+    // è¿›è¡Œå•æ­¥ rehash ï¼ŒT = O(1)
     if (dictIsRehashing(d)) _dictRehashStep(d);
 
-    // ¼ÆËã¹şÏ£Öµ
+    // è®¡ç®—å“ˆå¸Œå€¼
     h = dictHashKey(d, key);
 
-    // ±éÀú¹şÏ£±í
+    // éå†å“ˆå¸Œè¡¨
     // T = O(1)
     for (table = 0; table <= 1; table++) {
 
-        // ¼ÆËãË÷ÒıÖµ 
+        // è®¡ç®—ç´¢å¼•å€¼ 
         idx = h & d->ht[table].sizemask;
-        // Ö¸Ïò¸ÃË÷ÒıÉÏµÄÁ´±í
+        // æŒ‡å‘è¯¥ç´¢å¼•ä¸Šçš„é“¾è¡¨
         he = d->ht[table].table[idx];
         prevHe = NULL;
-        // ±éÀúÁ´±íÉÏµÄËùÓĞ½Úµã
+        // éå†é“¾è¡¨ä¸Šçš„æ‰€æœ‰èŠ‚ç‚¹
         // T = O(1)
         while(he) {
         
             if (dictCompareKeys(d, key, he->key)) {
-                // ³¬ÕÒÄ¿±ê½Úµã
+                // è¶…æ‰¾ç›®æ ‡èŠ‚ç‚¹
 
                 /* Unlink the element from the list */
-                // ´ÓÁ´±íÖĞÉ¾³ı
+                // ä»é“¾è¡¨ä¸­åˆ é™¤
                 if (prevHe)
                     prevHe->next = he->next;
                 else
                     d->ht[table].table[idx] = he->next;
 
-                // ÊÍ·Åµ÷ÓÃ¼üºÍÖµµÄÊÍ·Åº¯Êı£¿
+                // é‡Šæ”¾è°ƒç”¨é”®å’Œå€¼çš„é‡Šæ”¾å‡½æ•°ï¼Ÿ
                 if (!nofree) {
                     dictFreeKey(d, he);
                     dictFreeVal(d, he);
                 }
                 
-                // ÊÍ·Å½Úµã±¾Éí
+                // é‡Šæ”¾èŠ‚ç‚¹æœ¬èº«
                 zfree(he);
 
-                // ¸üĞÂÒÑÊ¹ÓÃ½ÚµãÊıÁ¿
+                // æ›´æ–°å·²ä½¿ç”¨èŠ‚ç‚¹æ•°é‡
                 d->ht[table].used--;
 
-                // ·µ»ØÒÑÕÒµ½ĞÅºÅ
+                // è¿”å›å·²æ‰¾åˆ°ä¿¡å·
                 return DICT_OK;
             }
 
@@ -724,21 +724,21 @@ static int dictGenericDelete(dict *d, const void *key, int nofree)
             he = he->next;
         }
 
-        // Èç¹ûÖ´ĞĞµ½ÕâÀï£¬ËµÃ÷ÔÚ 0 ºÅ¹şÏ£±íÖĞÕÒ²»µ½¸ø¶¨¼ü
-        // ÄÇÃ´¸ù¾İ×ÖµäÊÇ·ñÕıÔÚ½øĞĞ rehash £¬¾ö¶¨Òª²»Òª²éÕÒ 1 ºÅ¹şÏ£±í
+        // å¦‚æœæ‰§è¡Œåˆ°è¿™é‡Œï¼Œè¯´æ˜åœ¨ 0 å·å“ˆå¸Œè¡¨ä¸­æ‰¾ä¸åˆ°ç»™å®šé”®
+        // é‚£ä¹ˆæ ¹æ®å­—å…¸æ˜¯å¦æ­£åœ¨è¿›è¡Œ rehash ï¼Œå†³å®šè¦ä¸è¦æŸ¥æ‰¾ 1 å·å“ˆå¸Œè¡¨
         if (!dictIsRehashing(d)) break;
     }
 
-    // Ã»ÕÒµ½
+    // æ²¡æ‰¾åˆ°
     return DICT_ERR; /* not found */
 }
 
 /*
- * ´Ó×ÖµäÖĞÉ¾³ı°üº¬¸ø¶¨¼üµÄ½Úµã
+ * ä»å­—å…¸ä¸­åˆ é™¤åŒ…å«ç»™å®šé”®çš„èŠ‚ç‚¹
  * 
- * ²¢ÇÒµ÷ÓÃ¼üÖµµÄÊÍ·Åº¯ÊıÀ´É¾³ı¼üÖµ
+ * å¹¶ä¸”è°ƒç”¨é”®å€¼çš„é‡Šæ”¾å‡½æ•°æ¥åˆ é™¤é”®å€¼
  *
- * ÕÒµ½²¢³É¹¦É¾³ı·µ»Ø DICT_OK £¬Ã»ÕÒµ½Ôò·µ»Ø DICT_ERR
+ * æ‰¾åˆ°å¹¶æˆåŠŸåˆ é™¤è¿”å› DICT_OK ï¼Œæ²¡æ‰¾åˆ°åˆ™è¿”å› DICT_ERR
  * T = O(1)
  */
 int dictDelete(dict *ht, const void *key) {
@@ -746,11 +746,11 @@ int dictDelete(dict *ht, const void *key) {
 }
 
 /*
- * ´Ó×ÖµäÖĞÉ¾³ı°üº¬¸ø¶¨¼üµÄ½Úµã
+ * ä»å­—å…¸ä¸­åˆ é™¤åŒ…å«ç»™å®šé”®çš„èŠ‚ç‚¹
  * 
- * µ«²»µ÷ÓÃ¼üÖµµÄÊÍ·Åº¯ÊıÀ´É¾³ı¼üÖµ
+ * ä½†ä¸è°ƒç”¨é”®å€¼çš„é‡Šæ”¾å‡½æ•°æ¥åˆ é™¤é”®å€¼
  *
- * ÕÒµ½²¢³É¹¦É¾³ı·µ»Ø DICT_OK £¬Ã»ÕÒµ½Ôò·µ»Ø DICT_ERR
+ * æ‰¾åˆ°å¹¶æˆåŠŸåˆ é™¤è¿”å› DICT_OK ï¼Œæ²¡æ‰¾åˆ°åˆ™è¿”å› DICT_ERR
  * T = O(1)
  */
 int dictDeleteNoFree(dict *ht, const void *key) {
@@ -759,7 +759,7 @@ int dictDeleteNoFree(dict *ht, const void *key) {
 
 /* Destroy an entire dictionary */
 /*
- * É¾³ı¹şÏ£±íÉÏµÄËùÓĞ½Úµã£¬²¢ÖØÖÃ¹şÏ£±íµÄ¸÷ÏîÊôĞÔ
+ * åˆ é™¤å“ˆå¸Œè¡¨ä¸Šçš„æ‰€æœ‰èŠ‚ç‚¹ï¼Œå¹¶é‡ç½®å“ˆå¸Œè¡¨çš„å„é¡¹å±æ€§
  *
  * T = O(N)
  */
@@ -767,41 +767,41 @@ int _dictClear(dict *d, dictht *ht, void(callback)(void *)) {
     unsigned long i;
 
     /* Free all the elements */
-    // ±éÀúÕû¸ö¹şÏ£±í
+    // éå†æ•´ä¸ªå“ˆå¸Œè¡¨
     // T = O(N)
     for (i = 0; i < ht->size && ht->used > 0; i++) {
         dictEntry *he, *nextHe;
 
-        if (callback && (i & 65535) == 0) callback(d->privdata); //Çå³ı¹ı³ÌÖĞÕâÀï×öÒ»´Îcallbackµ÷ÓÃ
+        if (callback && (i & 65535) == 0) callback(d->privdata); //æ¸…é™¤è¿‡ç¨‹ä¸­è¿™é‡Œåšä¸€æ¬¡callbackè°ƒç”¨
 
-        // Ìø¹ı¿ÕË÷Òı
+        // è·³è¿‡ç©ºç´¢å¼•
         if ((he = ht->table[i]) == NULL) continue;
 
-        // ±éÀúÕû¸öÁ´±í
+        // éå†æ•´ä¸ªé“¾è¡¨
         // T = O(1)
         while(he) {
             nextHe = he->next;
-            // É¾³ı¼ü
+            // åˆ é™¤é”®
             dictFreeKey(d, he);
-            // É¾³ıÖµ
+            // åˆ é™¤å€¼
             dictFreeVal(d, he);
-            // ÊÍ·Å½Úµã
+            // é‡Šæ”¾èŠ‚ç‚¹
             zfree(he);
 
-            // ¸üĞÂÒÑÊ¹ÓÃ½Úµã¼ÆÊı
+            // æ›´æ–°å·²ä½¿ç”¨èŠ‚ç‚¹è®¡æ•°
             ht->used--;
 
-            // ´¦ÀíÏÂ¸ö½Úµã
+            // å¤„ç†ä¸‹ä¸ªèŠ‚ç‚¹
             he = nextHe;
         }
     }
 
     /* Free the table and the allocated cache structure */
-    // ÊÍ·Å¹şÏ£±í½á¹¹
+    // é‡Šæ”¾å“ˆå¸Œè¡¨ç»“æ„
     zfree(ht->table);
 
     /* Re-initialize the table */
-    // ÖØÖÃ¹şÏ£±íÊôĞÔ
+    // é‡ç½®å“ˆå¸Œè¡¨å±æ€§
     _dictReset(ht);
 
     return DICT_OK; /* never fails */
@@ -809,23 +809,23 @@ int _dictClear(dict *d, dictht *ht, void(callback)(void *)) {
 
 /* Clear & Release the hash table */
 /*
- * É¾³ı²¢ÊÍ·ÅÕû¸ö×Öµä
+ * åˆ é™¤å¹¶é‡Šæ”¾æ•´ä¸ªå­—å…¸
  *
  * T = O(N)
  */
 void dictRelease(dict *d)
 {
-    // É¾³ı²¢Çå¿ÕÁ½¸ö¹şÏ£±í
+    // åˆ é™¤å¹¶æ¸…ç©ºä¸¤ä¸ªå“ˆå¸Œè¡¨
     _dictClear(d,&d->ht[0],NULL);
     _dictClear(d,&d->ht[1],NULL);
-    // ÊÍ·Å½Úµã½á¹¹
+    // é‡Šæ”¾èŠ‚ç‚¹ç»“æ„
     zfree(d);
 }
 
 /*
- * ·µ»Ø×ÖµäÖĞ°üº¬¼ü key µÄ½Úµã
+ * è¿”å›å­—å…¸ä¸­åŒ…å«é”® key çš„èŠ‚ç‚¹
  *
- * ÕÒµ½·µ»Ø½Úµã£¬ÕÒ²»µ½·µ»Ø NULL
+ * æ‰¾åˆ°è¿”å›èŠ‚ç‚¹ï¼Œæ‰¾ä¸åˆ°è¿”å› NULL
  *
  * T = O(1)
  */
@@ -834,22 +834,22 @@ dictEntry *dictFind(dict *d, const void *key)
     dictEntry *he;
     unsigned int h, idx, table;
 
-    // ×Öµä£¨µÄ¹şÏ£±í£©Îª¿Õ
+    // å­—å…¸ï¼ˆçš„å“ˆå¸Œè¡¨ï¼‰ä¸ºç©º
     if (d->ht[0].size == 0) return NULL; /* We don't have a table at all */
 
-    // Èç¹ûÌõ¼şÔÊĞíµÄ»°£¬½øĞĞµ¥²½ rehash
+    // å¦‚æœæ¡ä»¶å…è®¸çš„è¯ï¼Œè¿›è¡Œå•æ­¥ rehash
     if (dictIsRehashing(d)) _dictRehashStep(d);
 
-    // ¼ÆËã¼üµÄ¹şÏ£Öµ
+    // è®¡ç®—é”®çš„å“ˆå¸Œå€¼
     h = dictHashKey(d, key);
-    // ÔÚ×ÖµäµÄ¹şÏ£±íÖĞ²éÕÒÕâ¸ö¼ü
+    // åœ¨å­—å…¸çš„å“ˆå¸Œè¡¨ä¸­æŸ¥æ‰¾è¿™ä¸ªé”®
     // T = O(1)
     for (table = 0; table <= 1; table++) {
 
-        // ¼ÆËãË÷ÒıÖµ
+        // è®¡ç®—ç´¢å¼•å€¼
         idx = h & d->ht[table].sizemask;
 
-        // ±éÀú¸ø¶¨Ë÷ÒıÉÏµÄÁ´±íµÄËùÓĞ½Úµã£¬²éÕÒ key
+        // éå†ç»™å®šç´¢å¼•ä¸Šçš„é“¾è¡¨çš„æ‰€æœ‰èŠ‚ç‚¹ï¼ŒæŸ¥æ‰¾ key
         he = d->ht[table].table[idx];
         // T = O(1)
         while(he) {
@@ -860,21 +860,21 @@ dictEntry *dictFind(dict *d, const void *key)
             he = he->next;
         }
 
-        // Èç¹û³ÌĞò±éÀúÍê 0 ºÅ¹şÏ£±í£¬ÈÔÈ»Ã»ÕÒµ½Ö¸¶¨µÄ¼üµÄ½Úµã
-        // ÄÇÃ´³ÌĞò»á¼ì²é×ÖµäÊÇ·ñÔÚ½øĞĞ rehash £¬
-        // È»ºó²Å¾ö¶¨ÊÇÖ±½Ó·µ»Ø NULL £¬»¹ÊÇ¼ÌĞø²éÕÒ 1 ºÅ¹şÏ£±í
+        // å¦‚æœç¨‹åºéå†å®Œ 0 å·å“ˆå¸Œè¡¨ï¼Œä»ç„¶æ²¡æ‰¾åˆ°æŒ‡å®šçš„é”®çš„èŠ‚ç‚¹
+        // é‚£ä¹ˆç¨‹åºä¼šæ£€æŸ¥å­—å…¸æ˜¯å¦åœ¨è¿›è¡Œ rehash ï¼Œ
+        // ç„¶åæ‰å†³å®šæ˜¯ç›´æ¥è¿”å› NULL ï¼Œè¿˜æ˜¯ç»§ç»­æŸ¥æ‰¾ 1 å·å“ˆå¸Œè¡¨
         if (!dictIsRehashing(d)) return NULL;
     }
 
-    // ½øĞĞµ½ÕâÀïÊ±£¬ËµÃ÷Á½¸ö¹şÏ£±í¶¼Ã»ÕÒµ½
+    // è¿›è¡Œåˆ°è¿™é‡Œæ—¶ï¼Œè¯´æ˜ä¸¤ä¸ªå“ˆå¸Œè¡¨éƒ½æ²¡æ‰¾åˆ°
     return NULL;
 }
 
 /*
- * »ñÈ¡°üº¬¸ø¶¨¼üµÄ½ÚµãµÄÖµ
+ * è·å–åŒ…å«ç»™å®šé”®çš„èŠ‚ç‚¹çš„å€¼
  *
- * Èç¹û½Úµã²»Îª¿Õ£¬·µ»Ø½ÚµãµÄÖµ
- * ·ñÔò·µ»Ø NULL
+ * å¦‚æœèŠ‚ç‚¹ä¸ä¸ºç©ºï¼Œè¿”å›èŠ‚ç‚¹çš„å€¼
+ * å¦åˆ™è¿”å› NULL
  *
  * T = O(1)
  */
@@ -926,7 +926,7 @@ long long dictFingerprint(dict *d) {
 }
 
 /*
- * ´´½¨²¢·µ»Ø¸ø¶¨×ÖµäµÄ²»°²È«µü´úÆ÷
+ * åˆ›å»ºå¹¶è¿”å›ç»™å®šå­—å…¸çš„ä¸å®‰å…¨è¿­ä»£å™¨
  *
  * T = O(1)
  */
@@ -945,76 +945,76 @@ dictIterator *dictGetIterator(dict *d)
 }
 
 /*
- * ´´½¨²¢·µ»Ø¸ø¶¨½ÚµãµÄ°²È«µü´úÆ÷
+ * åˆ›å»ºå¹¶è¿”å›ç»™å®šèŠ‚ç‚¹çš„å®‰å…¨è¿­ä»£å™¨
  *
  * T = O(1)
  */
 dictIterator *dictGetSafeIterator(dict *d) {
     dictIterator *i = dictGetIterator(d);
 
-    // ÉèÖÃ°²È«µü´úÆ÷±êÊ¶
+    // è®¾ç½®å®‰å…¨è¿­ä»£å™¨æ ‡è¯†
     i->safe = 1;
 
     return i;
 }
 
 /*
- * ·µ»Øµü´úÆ÷Ö¸ÏòµÄµ±Ç°½Úµã
+ * è¿”å›è¿­ä»£å™¨æŒ‡å‘çš„å½“å‰èŠ‚ç‚¹
  *
- * ×Öµäµü´úÍê±ÏÊ±£¬·µ»Ø NULL
+ * å­—å…¸è¿­ä»£å®Œæ¯•æ—¶ï¼Œè¿”å› NULL
  *
  * T = O(1)
- */ //±éÀúÍ°ÖĞµÄËùÓĞ½Úµã£¬µÚÒ»´Î±éÀú¸Ãº¯ÊıµÄÊ±ºòÖ±½Ó»ñÈ¡¾ßÌåÍ°Ê×ÔªËØ£¬·ñÔòÊ¹ÓÃnextEntry
+ */ //éå†æ¡¶ä¸­çš„æ‰€æœ‰èŠ‚ç‚¹ï¼Œç¬¬ä¸€æ¬¡éå†è¯¥å‡½æ•°çš„æ—¶å€™ç›´æ¥è·å–å…·ä½“æ¡¶é¦–å…ƒç´ ï¼Œå¦åˆ™ä½¿ç”¨nextEntry
 dictEntry *dictNext(dictIterator *iter)
 {
     while (1) {
 
-        // ½øÈëÕâ¸öÑ­»·ÓĞÁ½ÖÖ¿ÉÄÜ£º
-        // 1) ÕâÊÇµü´úÆ÷µÚÒ»´ÎÔËĞĞ
-        // 2) µ±Ç°Ë÷ÒıÁ´±íÖĞµÄ½ÚµãÒÑ¾­µü´úÍê£¨NULL ÎªÁ´±íµÄ±íÎ²£©
+        // è¿›å…¥è¿™ä¸ªå¾ªç¯æœ‰ä¸¤ç§å¯èƒ½ï¼š
+        // 1) è¿™æ˜¯è¿­ä»£å™¨ç¬¬ä¸€æ¬¡è¿è¡Œ
+        // 2) å½“å‰ç´¢å¼•é“¾è¡¨ä¸­çš„èŠ‚ç‚¹å·²ç»è¿­ä»£å®Œï¼ˆNULL ä¸ºé“¾è¡¨çš„è¡¨å°¾ï¼‰
         if (iter->entry == NULL) {
 
-            // Ö¸Ïò±»µü´úµÄ¹şÏ£±í
+            // æŒ‡å‘è¢«è¿­ä»£çš„å“ˆå¸Œè¡¨
             dictht *ht = &iter->d->ht[iter->table];
 
-            // ³õ´Îµü´úÊ±Ö´ĞĞ
+            // åˆæ¬¡è¿­ä»£æ—¶æ‰§è¡Œ
             if (iter->index == -1 && iter->table == 0) {
-                // Èç¹ûÊÇ°²È«µü´úÆ÷£¬ÄÇÃ´¸üĞÂ°²È«µü´úÆ÷¼ÆÊıÆ÷
+                // å¦‚æœæ˜¯å®‰å…¨è¿­ä»£å™¨ï¼Œé‚£ä¹ˆæ›´æ–°å®‰å…¨è¿­ä»£å™¨è®¡æ•°å™¨
                 if (iter->safe)
                     iter->d->iterators++;
-                // Èç¹ûÊÇ²»°²È«µü´úÆ÷£¬ÄÇÃ´¼ÆËãÖ¸ÎÆ
+                // å¦‚æœæ˜¯ä¸å®‰å…¨è¿­ä»£å™¨ï¼Œé‚£ä¹ˆè®¡ç®—æŒ‡çº¹
                 else
                     iter->fingerprint = dictFingerprint(iter->d);
             }
-            // ¸üĞÂË÷Òı
-            iter->index++; //Ä¬ÈÏÖµÎª-1£¬×Ô¼Óºó¸ÕºÃÎª0£¬¼´µÚÒ»¸öÍ°
+            // æ›´æ–°ç´¢å¼•
+            iter->index++; //é»˜è®¤å€¼ä¸º-1ï¼Œè‡ªåŠ ååˆšå¥½ä¸º0ï¼Œå³ç¬¬ä¸€ä¸ªæ¡¶
 
-            // Èç¹ûµü´úÆ÷µÄµ±Ç°Ë÷Òı´óÓÚµ±Ç°±»µü´úµÄ¹şÏ£±íµÄ´óĞ¡
-            // ÄÇÃ´ËµÃ÷Õâ¸ö¹şÏ£±íÒÑ¾­µü´úÍê±Ï
+            // å¦‚æœè¿­ä»£å™¨çš„å½“å‰ç´¢å¼•å¤§äºå½“å‰è¢«è¿­ä»£çš„å“ˆå¸Œè¡¨çš„å¤§å°
+            // é‚£ä¹ˆè¯´æ˜è¿™ä¸ªå“ˆå¸Œè¡¨å·²ç»è¿­ä»£å®Œæ¯•
             if (iter->index >= (signed) ht->size) {
-                // Èç¹ûÕıÔÚ rehash µÄ»°£¬ÄÇÃ´ËµÃ÷ 1 ºÅ¹şÏ£±íÒ²ÕıÔÚÊ¹ÓÃÖĞ
-                // ÄÇÃ´¼ÌĞø¶Ô 1 ºÅ¹şÏ£±í½øĞĞµü´ú
+                // å¦‚æœæ­£åœ¨ rehash çš„è¯ï¼Œé‚£ä¹ˆè¯´æ˜ 1 å·å“ˆå¸Œè¡¨ä¹Ÿæ­£åœ¨ä½¿ç”¨ä¸­
+                // é‚£ä¹ˆç»§ç»­å¯¹ 1 å·å“ˆå¸Œè¡¨è¿›è¡Œè¿­ä»£
                 if (dictIsRehashing(iter->d) && iter->table == 0) {
                     iter->table++;
                     iter->index = 0;
                     ht = &iter->d->ht[1];
-                // Èç¹ûÃ»ÓĞ rehash £¬ÄÇÃ´ËµÃ÷µü´úÒÑ¾­Íê³É
+                // å¦‚æœæ²¡æœ‰ rehash ï¼Œé‚£ä¹ˆè¯´æ˜è¿­ä»£å·²ç»å®Œæˆ
                 } else {
                     break;
                 }
             }
 
-            // Èç¹û½øĞĞµ½ÕâÀï£¬ËµÃ÷Õâ¸ö¹şÏ£±í²¢Î´µü´úÍê
-            // ¸üĞÂ½ÚµãÖ¸Õë£¬Ö¸ÏòÏÂ¸öË÷ÒıÁ´±íµÄ±íÍ·½Úµã
+            // å¦‚æœè¿›è¡Œåˆ°è¿™é‡Œï¼Œè¯´æ˜è¿™ä¸ªå“ˆå¸Œè¡¨å¹¶æœªè¿­ä»£å®Œ
+            // æ›´æ–°èŠ‚ç‚¹æŒ‡é’ˆï¼ŒæŒ‡å‘ä¸‹ä¸ªç´¢å¼•é“¾è¡¨çš„è¡¨å¤´èŠ‚ç‚¹
             iter->entry = ht->table[iter->index];
         } else {
-            // Ö´ĞĞµ½ÕâÀï£¬ËµÃ÷³ÌĞòÕıÔÚµü´úÄ³¸öÁ´±í
-            // ½«½ÚµãÖ¸ÕëÖ¸ÏòÁ´±íµÄÏÂ¸ö½Úµã
+            // æ‰§è¡Œåˆ°è¿™é‡Œï¼Œè¯´æ˜ç¨‹åºæ­£åœ¨è¿­ä»£æŸä¸ªé“¾è¡¨
+            // å°†èŠ‚ç‚¹æŒ‡é’ˆæŒ‡å‘é“¾è¡¨çš„ä¸‹ä¸ªèŠ‚ç‚¹
             iter->entry = iter->nextEntry;
         }
 
-        // Èç¹ûµ±Ç°½Úµã²»Îª¿Õ£¬ÄÇÃ´Ò²¼ÇÂ¼ÏÂ¸Ã½ÚµãµÄÏÂ¸ö½Úµã
-        // ÒòÎª°²È«µü´úÆ÷ÓĞ¿ÉÄÜ»á½«µü´úÆ÷·µ»ØµÄµ±Ç°½ÚµãÉ¾³ı
+        // å¦‚æœå½“å‰èŠ‚ç‚¹ä¸ä¸ºç©ºï¼Œé‚£ä¹ˆä¹Ÿè®°å½•ä¸‹è¯¥èŠ‚ç‚¹çš„ä¸‹ä¸ªèŠ‚ç‚¹
+        // å› ä¸ºå®‰å…¨è¿­ä»£å™¨æœ‰å¯èƒ½ä¼šå°†è¿­ä»£å™¨è¿”å›çš„å½“å‰èŠ‚ç‚¹åˆ é™¤
         if (iter->entry) {
             /* We need to save the 'next' here, the iterator user
              * may delete the entry we are returning. */
@@ -1023,12 +1023,12 @@ dictEntry *dictNext(dictIterator *iter)
         }
     }
 
-    // µü´úÍê±Ï
+    // è¿­ä»£å®Œæ¯•
     return NULL;
 }
 
 /*
- * ÊÍ·Å¸ø¶¨×Öµäµü´úÆ÷
+ * é‡Šæ”¾ç»™å®šå­—å…¸è¿­ä»£å™¨
  *
  * T = O(1)
  */
@@ -1036,10 +1036,10 @@ void dictReleaseIterator(dictIterator *iter)
 {
 
     if (!(iter->index == -1 && iter->table == 0)) {
-        // ÊÍ·Å°²È«µü´úÆ÷Ê±£¬°²È«µü´úÆ÷¼ÆÊıÆ÷¼õÒ»
+        // é‡Šæ”¾å®‰å…¨è¿­ä»£å™¨æ—¶ï¼Œå®‰å…¨è¿­ä»£å™¨è®¡æ•°å™¨å‡ä¸€
         if (iter->safe)
             iter->d->iterators--;
-        // ÊÍ·Å²»°²È«µü´úÆ÷Ê±£¬ÑéÖ¤Ö¸ÎÆÊÇ·ñÓĞ±ä»¯
+        // é‡Šæ”¾ä¸å®‰å…¨è¿­ä»£å™¨æ—¶ï¼ŒéªŒè¯æŒ‡çº¹æ˜¯å¦æœ‰å˜åŒ–
         else
             assert(iter->fingerprint == dictFingerprint(iter->d));
     }
@@ -1049,11 +1049,11 @@ void dictReleaseIterator(dictIterator *iter)
 /* Return a random entry from the hash table. Useful to
  * implement randomized algorithms */
 /*
- * Ëæ»ú·µ»Ø×ÖµäÖĞÈÎÒâÒ»¸ö½Úµã¡£
+ * éšæœºè¿”å›å­—å…¸ä¸­ä»»æ„ä¸€ä¸ªèŠ‚ç‚¹ã€‚
  *
- * ¿ÉÓÃÓÚÊµÏÖËæ»ú»¯Ëã·¨¡£
+ * å¯ç”¨äºå®ç°éšæœºåŒ–ç®—æ³•ã€‚
  *
- * Èç¹û×ÖµäÎª¿Õ£¬·µ»Ø NULL ¡£
+ * å¦‚æœå­—å…¸ä¸ºç©ºï¼Œè¿”å› NULL ã€‚
  *
  * T = O(N)
 */
@@ -1063,13 +1063,13 @@ dictEntry *dictGetRandomKey(dict *d)
     unsigned int h;
     int listlen, listele;
 
-    // ×ÖµäÎª¿Õ
+    // å­—å…¸ä¸ºç©º
     if (dictSize(d) == 0) return NULL;
 
-    // ½øĞĞµ¥²½ rehash
+    // è¿›è¡Œå•æ­¥ rehash
     if (dictIsRehashing(d)) _dictRehashStep(d);
 
-    // Èç¹ûÕıÔÚ rehash £¬ÄÇÃ´½« 1 ºÅ¹şÏ£±íÒ²×÷ÎªËæ»ú²éÕÒµÄÄ¿±ê
+    // å¦‚æœæ­£åœ¨ rehash ï¼Œé‚£ä¹ˆå°† 1 å·å“ˆå¸Œè¡¨ä¹Ÿä½œä¸ºéšæœºæŸ¥æ‰¾çš„ç›®æ ‡
     if (dictIsRehashing(d)) {
         // T = O(N)
         do {
@@ -1077,7 +1077,7 @@ dictEntry *dictGetRandomKey(dict *d)
             he = (h >= d->ht[0].size) ? d->ht[1].table[h - d->ht[0].size] :
                                       d->ht[0].table[h];
         } while(he == NULL);
-    // ·ñÔò£¬Ö»´Ó 0 ºÅ¹şÏ£±íÖĞ²éÕÒ½Úµã
+    // å¦åˆ™ï¼Œåªä» 0 å·å“ˆå¸Œè¡¨ä¸­æŸ¥æ‰¾èŠ‚ç‚¹
     } else {
         // T = O(N)
         do {
@@ -1090,23 +1090,23 @@ dictEntry *dictGetRandomKey(dict *d)
      * list and we need to get a random element from the list.
      * The only sane way to do so is counting the elements and
      * select a random index. */
-    // Ä¿Ç° he ÒÑ¾­Ö¸ÏòÒ»¸ö·Ç¿ÕµÄ½ÚµãÁ´±í
-    // ³ÌĞò½«´ÓÕâ¸öÁ´±íËæ»ú·µ»ØÒ»¸ö½Úµã
+    // ç›®å‰ he å·²ç»æŒ‡å‘ä¸€ä¸ªéç©ºçš„èŠ‚ç‚¹é“¾è¡¨
+    // ç¨‹åºå°†ä»è¿™ä¸ªé“¾è¡¨éšæœºè¿”å›ä¸€ä¸ªèŠ‚ç‚¹
     listlen = 0;
     orighe = he;
-    // ¼ÆËã½ÚµãÊıÁ¿, T = O(1)
-    while(he) { //±éÀúÕû¸öÍ°£¬¼ÆËãÕâ¸öÍ±ÀïÃæµÄKVÊı
+    // è®¡ç®—èŠ‚ç‚¹æ•°é‡, T = O(1)
+    while(he) { //éå†æ•´ä¸ªæ¡¶ï¼Œè®¡ç®—è¿™ä¸ªæ…é‡Œé¢çš„KVæ•°
         he = he->next;
         listlen++;
     }
-    // È¡Ä££¬µÃ³öËæ»ú½ÚµãµÄË÷Òı
-    listele = random() % listlen; //´Ó¾ßÌåÍ°ÀïÃæËæ»úÈ¡³öÒ»¸öKV½Úµã
+    // å–æ¨¡ï¼Œå¾—å‡ºéšæœºèŠ‚ç‚¹çš„ç´¢å¼•
+    listele = random() % listlen; //ä»å…·ä½“æ¡¶é‡Œé¢éšæœºå–å‡ºä¸€ä¸ªKVèŠ‚ç‚¹
     he = orighe;
-    // °´Ë÷Òı²éÕÒ½Úµã
+    // æŒ‰ç´¢å¼•æŸ¥æ‰¾èŠ‚ç‚¹
     // T = O(1)
     while(listele--) he = he->next;
 
-    // ·µ»ØËæ»ú½Úµã
+    // è¿”å›éšæœºèŠ‚ç‚¹
     return he;
 }
 
@@ -1176,37 +1176,37 @@ static unsigned long rev(unsigned long v) {
 
 /* dictScan() is used to iterate over the elements of a dictionary.
  *
- * dictScan() º¯ÊıÓÃÓÚµü´ú¸ø¶¨×ÖµäÖĞµÄÔªËØ¡£
+ * dictScan() å‡½æ•°ç”¨äºè¿­ä»£ç»™å®šå­—å…¸ä¸­çš„å…ƒç´ ã€‚
  *
  * Iterating works in the following way:
  *
- * µü´ú°´ÒÔÏÂ·½Ê½Ö´ĞĞ£º
+ * è¿­ä»£æŒ‰ä»¥ä¸‹æ–¹å¼æ‰§è¡Œï¼š
  *
  * 1) Initially you call the function using a cursor (v) value of 0.
- *    Ò»¿ªÊ¼£¬ÄãÊ¹ÓÃ 0 ×÷ÎªÓÎ±êÀ´µ÷ÓÃº¯Êı¡£
+ *    ä¸€å¼€å§‹ï¼Œä½ ä½¿ç”¨ 0 ä½œä¸ºæ¸¸æ ‡æ¥è°ƒç”¨å‡½æ•°ã€‚
  * 2) The function performs one step of the iteration, and returns the
  *    new cursor value that you must use in the next call.
- *    º¯ÊıÖ´ĞĞÒ»²½µü´ú²Ù×÷£¬
- *    ²¢·µ»ØÒ»¸öÏÂ´Îµü´úÊ±Ê¹ÓÃµÄĞÂÓÎ±ê¡£
+ *    å‡½æ•°æ‰§è¡Œä¸€æ­¥è¿­ä»£æ“ä½œï¼Œ
+ *    å¹¶è¿”å›ä¸€ä¸ªä¸‹æ¬¡è¿­ä»£æ—¶ä½¿ç”¨çš„æ–°æ¸¸æ ‡ã€‚
  * 3) When the returned cursor is 0, the iteration is complete.
- *    µ±º¯Êı·µ»ØµÄÓÎ±êÎª 0 Ê±£¬µü´úÍê³É¡£
+ *    å½“å‡½æ•°è¿”å›çš„æ¸¸æ ‡ä¸º 0 æ—¶ï¼Œè¿­ä»£å®Œæˆã€‚
  *
  * The function guarantees that all the elements that are present in the
  * dictionary from the start to the end of the iteration are returned.
  * However it is possible that some element is returned multiple time.
  *
- * º¯Êı±£Ö¤£¬ÔÚµü´ú´Ó¿ªÊ¼µ½½áÊøÆÚ¼ä£¬Ò»Ö±´æÔÚÓÚ×ÖµäµÄÔªËØ¿Ï¶¨»á±»µü´úµ½£¬
- * µ«Ò»¸öÔªËØ¿ÉÄÜ»á±»·µ»Ø¶à´Î¡£
+ * å‡½æ•°ä¿è¯ï¼Œåœ¨è¿­ä»£ä»å¼€å§‹åˆ°ç»“æŸæœŸé—´ï¼Œä¸€ç›´å­˜åœ¨äºå­—å…¸çš„å…ƒç´ è‚¯å®šä¼šè¢«è¿­ä»£åˆ°ï¼Œ
+ * ä½†ä¸€ä¸ªå…ƒç´ å¯èƒ½ä¼šè¢«è¿”å›å¤šæ¬¡ã€‚
  *
  * For every element returned, the callback 'fn' passed as argument is
  * called, with 'privdata' as first argument and the dictionar entry
  * 'de' as second argument.
  *
- * Ã¿µ±Ò»¸öÔªËØ±»·µ»ØÊ±£¬»Øµ÷º¯Êı fn ¾Í»á±»Ö´ĞĞ£¬
- * fn º¯ÊıµÄµÚÒ»¸ö²ÎÊıÊÇ privdata £¬¶øµÚ¶ş¸ö²ÎÊıÔòÊÇ×Öµä½Úµã de ¡£
+ * æ¯å½“ä¸€ä¸ªå…ƒç´ è¢«è¿”å›æ—¶ï¼Œå›è°ƒå‡½æ•° fn å°±ä¼šè¢«æ‰§è¡Œï¼Œ
+ * fn å‡½æ•°çš„ç¬¬ä¸€ä¸ªå‚æ•°æ˜¯ privdata ï¼Œè€Œç¬¬äºŒä¸ªå‚æ•°åˆ™æ˜¯å­—å…¸èŠ‚ç‚¹ de ã€‚
  *
  * HOW IT WORKS.
- * ¹¤×÷Ô­Àí
+ * å·¥ä½œåŸç†
  *
  * The algorithm used in the iteration was designed by Pieter Noordhuis.
  * The main idea is to increment a cursor starting from the higher order
@@ -1214,18 +1214,18 @@ static unsigned long rev(unsigned long v) {
  * of the cursor are reversed, then the cursor is incremented, and finally
  * the bits are reversed again.
  *
- * µü´úËùÊ¹ÓÃµÄËã·¨ÊÇÓÉ Pieter Noordhuis Éè¼ÆµÄ£¬
- * Ëã·¨µÄÖ÷ÒªË¼Â·ÊÇÔÚ¶ş½øÖÆ¸ßÎ»ÉÏ¶ÔÓÎ±ê½øĞĞ¼Ó·¨¼ÆËã
- * Ò²¼´ÊÇËµ£¬²»ÊÇ°´Õı³£µÄ°ì·¨À´¶ÔÓÎ±ê½øĞĞ¼Ó·¨¼ÆËã£¬
- * ¶øÊÇÊ×ÏÈ½«ÓÎ±êµÄ¶ş½øÖÆÎ»·­×ª£¨reverse£©¹ıÀ´£¬
- * È»ºó¶Ô·­×ªºóµÄÖµ½øĞĞ¼Ó·¨¼ÆËã£¬
- * ×îºóÔÙ´Î¶Ô¼Ó·¨¼ÆËãÖ®ºóµÄ½á¹û½øĞĞ·­×ª¡£
+ * è¿­ä»£æ‰€ä½¿ç”¨çš„ç®—æ³•æ˜¯ç”± Pieter Noordhuis è®¾è®¡çš„ï¼Œ
+ * ç®—æ³•çš„ä¸»è¦æ€è·¯æ˜¯åœ¨äºŒè¿›åˆ¶é«˜ä½ä¸Šå¯¹æ¸¸æ ‡è¿›è¡ŒåŠ æ³•è®¡ç®—
+ * ä¹Ÿå³æ˜¯è¯´ï¼Œä¸æ˜¯æŒ‰æ­£å¸¸çš„åŠæ³•æ¥å¯¹æ¸¸æ ‡è¿›è¡ŒåŠ æ³•è®¡ç®—ï¼Œ
+ * è€Œæ˜¯é¦–å…ˆå°†æ¸¸æ ‡çš„äºŒè¿›åˆ¶ä½ç¿»è½¬ï¼ˆreverseï¼‰è¿‡æ¥ï¼Œ
+ * ç„¶åå¯¹ç¿»è½¬åçš„å€¼è¿›è¡ŒåŠ æ³•è®¡ç®—ï¼Œ
+ * æœ€åå†æ¬¡å¯¹åŠ æ³•è®¡ç®—ä¹‹åçš„ç»“æœè¿›è¡Œç¿»è½¬ã€‚
  *
  * This strategy is needed because the hash table may be resized from one
  * call to the other call of the same iteration.
  *
- * ÕâÒ»²ßÂÔÊÇ±ØÒªµÄ£¬ÒòÎªÔÚÒ»´ÎÍêÕûµÄµü´ú¹ı³ÌÖĞ£¬
- * ¹şÏ£±íµÄ´óĞ¡ÓĞ¿ÉÄÜÔÚÁ½´Îµü´úÖ®¼ä·¢Éú¸Ä±ä¡£
+ * è¿™ä¸€ç­–ç•¥æ˜¯å¿…è¦çš„ï¼Œå› ä¸ºåœ¨ä¸€æ¬¡å®Œæ•´çš„è¿­ä»£è¿‡ç¨‹ä¸­ï¼Œ
+ * å“ˆå¸Œè¡¨çš„å¤§å°æœ‰å¯èƒ½åœ¨ä¸¤æ¬¡è¿­ä»£ä¹‹é—´å‘ç”Ÿæ”¹å˜ã€‚
  *
  * dict.c hash tables are always power of two in size, and they
  * use chaining, so the position of an element in a given table is given
@@ -1233,37 +1233,37 @@ static unsigned long rev(unsigned long v) {
  * (where SIZE-1 is always the mask that is equivalent to taking the rest
  *  of the division between the Hash of the key and SIZE).
  *
- * ¹şÏ£±íµÄ´óĞ¡×ÜÊÇ 2 µÄÄ³¸ö´Î·½£¬²¢ÇÒ¹şÏ£±íÊ¹ÓÃÁ´±íÀ´½â¾ö³åÍ»£¬
- * Òò´ËÒ»¸ö¸ø¶¨ÔªËØÔÚÒ»¸ö¸ø¶¨±íµÄÎ»ÖÃ×Ü¿ÉÒÔÍ¨¹ı Hash(key) & SIZE-1
- * ¹«Ê½À´¼ÆËãµÃ³ö£¬
- * ÆäÖĞ SIZE-1 ÊÇ¹şÏ£±íµÄ×î´óË÷ÒıÖµ£¬
- * Õâ¸ö×î´óË÷ÒıÖµ¾ÍÊÇ¹şÏ£±íµÄ mask £¨ÑÚÂë£©¡£
+ * å“ˆå¸Œè¡¨çš„å¤§å°æ€»æ˜¯ 2 çš„æŸä¸ªæ¬¡æ–¹ï¼Œå¹¶ä¸”å“ˆå¸Œè¡¨ä½¿ç”¨é“¾è¡¨æ¥è§£å†³å†²çªï¼Œ
+ * å› æ­¤ä¸€ä¸ªç»™å®šå…ƒç´ åœ¨ä¸€ä¸ªç»™å®šè¡¨çš„ä½ç½®æ€»å¯ä»¥é€šè¿‡ Hash(key) & SIZE-1
+ * å…¬å¼æ¥è®¡ç®—å¾—å‡ºï¼Œ
+ * å…¶ä¸­ SIZE-1 æ˜¯å“ˆå¸Œè¡¨çš„æœ€å¤§ç´¢å¼•å€¼ï¼Œ
+ * è¿™ä¸ªæœ€å¤§ç´¢å¼•å€¼å°±æ˜¯å“ˆå¸Œè¡¨çš„ mask ï¼ˆæ©ç ï¼‰ã€‚
  *
  * For example if the current hash table size is 16, the mask is
  * (in binary) 1111. The position of a key in the hash table will be always
  * the last four bits of the hash output, and so forth.
  *
- * ¾Ù¸öÀı×Ó£¬Èç¹ûµ±Ç°¹şÏ£±íµÄ´óĞ¡Îª 16 £¬
- * ÄÇÃ´ËüµÄÑÚÂë¾ÍÊÇ¶ş½øÖÆÖµ 1111 £¬
- * Õâ¸ö¹şÏ£±íµÄËùÓĞÎ»ÖÃ¶¼¿ÉÒÔÊ¹ÓÃ¹şÏ£ÖµµÄ×îºóËÄ¸ö¶ş½øÖÆÎ»À´¼ÇÂ¼¡£
+ * ä¸¾ä¸ªä¾‹å­ï¼Œå¦‚æœå½“å‰å“ˆå¸Œè¡¨çš„å¤§å°ä¸º 16 ï¼Œ
+ * é‚£ä¹ˆå®ƒçš„æ©ç å°±æ˜¯äºŒè¿›åˆ¶å€¼ 1111 ï¼Œ
+ * è¿™ä¸ªå“ˆå¸Œè¡¨çš„æ‰€æœ‰ä½ç½®éƒ½å¯ä»¥ä½¿ç”¨å“ˆå¸Œå€¼çš„æœ€åå››ä¸ªäºŒè¿›åˆ¶ä½æ¥è®°å½•ã€‚
  *
  * WHAT HAPPENS IF THE TABLE CHANGES IN SIZE?
- * Èç¹û¹şÏ£±íµÄ´óĞ¡¸Ä±äÁËÔõÃ´°ì£¿
+ * å¦‚æœå“ˆå¸Œè¡¨çš„å¤§å°æ”¹å˜äº†æ€ä¹ˆåŠï¼Ÿ
  *
  * If the hash table grows, elements can go anyway in one multiple of
  * the old bucket: for example let's say that we already iterated with
  * a 4 bit cursor 1100, since the mask is 1111 (hash table size = 16).
  *
- * µ±¶Ô¹şÏ£±í½øĞĞÀ©Õ¹Ê±£¬ÔªËØ¿ÉÄÜ»á´ÓÒ»¸ö²ÛÒÆ¶¯µ½ÁíÒ»¸ö²Û£¬
- * ¾Ù¸öÀı×Ó£¬¼ÙÉèÎÒÃÇ¸ÕºÃµü´úÖÁ 4 Î»ÓÎ±ê 1100 £¬
- * ¶ø¹şÏ£±íµÄ mask Îª 1111 £¨¹şÏ£±íµÄ´óĞ¡Îª 16 £©¡£
+ * å½“å¯¹å“ˆå¸Œè¡¨è¿›è¡Œæ‰©å±•æ—¶ï¼Œå…ƒç´ å¯èƒ½ä¼šä»ä¸€ä¸ªæ§½ç§»åŠ¨åˆ°å¦ä¸€ä¸ªæ§½ï¼Œ
+ * ä¸¾ä¸ªä¾‹å­ï¼Œå‡è®¾æˆ‘ä»¬åˆšå¥½è¿­ä»£è‡³ 4 ä½æ¸¸æ ‡ 1100 ï¼Œ
+ * è€Œå“ˆå¸Œè¡¨çš„ mask ä¸º 1111 ï¼ˆå“ˆå¸Œè¡¨çš„å¤§å°ä¸º 16 ï¼‰ã€‚
  *
  * If the hash table will be resized to 64 elements, and the new mask will
  * be 111111, the new buckets that you obtain substituting in ??1100
  * either 0 or 1, can be targeted only by keys that we already visited
  * when scanning the bucket 1100 in the smaller hash table.
  *
- * Èç¹ûÕâÊ±¹şÏ£±í½«´óĞ¡¸ÄÎª 64 £¬ÄÇÃ´¹şÏ£±íµÄ mask ½«±äÎª 111111 £¬
+ * å¦‚æœè¿™æ—¶å“ˆå¸Œè¡¨å°†å¤§å°æ”¹ä¸º 64 ï¼Œé‚£ä¹ˆå“ˆå¸Œè¡¨çš„ mask å°†å˜ä¸º 111111 ï¼Œ
  *
  * By iterating the higher bits first, because of the inverted counter, the
  * cursor does not need to restart if the table size gets bigger, and will
@@ -1277,7 +1277,7 @@ static unsigned long rev(unsigned long v) {
  * variations of the higher bit) so we don't need to test it again.
  *
  * WAIT... YOU HAVE *TWO* TABLES DURING REHASHING!
- * µÈµÈ¡£¡£¡£ÔÚ rehash µÄÊ±ºò¿ÉÊÇ»á³öÏÖÁ½¸ö¹şÏ£±íµÄ°¢£¡
+ * ç­‰ç­‰ã€‚ã€‚ã€‚åœ¨ rehash çš„æ—¶å€™å¯æ˜¯ä¼šå‡ºç°ä¸¤ä¸ªå“ˆå¸Œè¡¨çš„é˜¿ï¼
  *
  * Yes, this is true, but we always iterate the smaller one of the tables,
  * testing also all the expansions of the current cursor into the larger
@@ -1287,31 +1287,31 @@ static unsigned long rev(unsigned long v) {
  * the larger one, if exists, is just an expansion of the smaller one.
  *
  * LIMITATIONS
- * ÏŞÖÆ
+ * é™åˆ¶
  *
  * This iterator is completely stateless, and this is a huge advantage,
  * including no additional memory used.
- * Õâ¸öµü´úÆ÷ÊÇÍêÈ«ÎŞ×´Ì¬µÄ£¬ÕâÊÇÒ»¸ö¾Ş´óµÄÓÅÊÆ£¬
- * ÒòÎªµü´ú¿ÉÒÔÔÚ²»Ê¹ÓÃÈÎºÎ¶îÍâÄÚ´æµÄÇé¿öÏÂ½øĞĞ¡£
+ * è¿™ä¸ªè¿­ä»£å™¨æ˜¯å®Œå…¨æ— çŠ¶æ€çš„ï¼Œè¿™æ˜¯ä¸€ä¸ªå·¨å¤§çš„ä¼˜åŠ¿ï¼Œ
+ * å› ä¸ºè¿­ä»£å¯ä»¥åœ¨ä¸ä½¿ç”¨ä»»ä½•é¢å¤–å†…å­˜çš„æƒ…å†µä¸‹è¿›è¡Œã€‚
  *
  * The disadvantages resulting from this design are:
- * Õâ¸öÉè¼ÆµÄÈ±ÏİÔÚÓÚ£º
+ * è¿™ä¸ªè®¾è®¡çš„ç¼ºé™·åœ¨äºï¼š
  *
  * 1) It is possible that we return duplicated elements. However this is usually
  *    easy to deal with in the application level.
- *    º¯Êı¿ÉÄÜ»á·µ»ØÖØ¸´µÄÔªËØ£¬²»¹ıÕâ¸öÎÊÌâ¿ÉÒÔºÜÈİÒ×ÔÚÓ¦ÓÃ²ã½â¾ö¡£
+ *    å‡½æ•°å¯èƒ½ä¼šè¿”å›é‡å¤çš„å…ƒç´ ï¼Œä¸è¿‡è¿™ä¸ªé—®é¢˜å¯ä»¥å¾ˆå®¹æ˜“åœ¨åº”ç”¨å±‚è§£å†³ã€‚
  * 2) The iterator must return multiple elements per call, as it needs to always
  *    return all the keys chained in a given bucket, and all the expansions, so
  *    we are sure we don't miss keys moving.
- *    ÎªÁË²»´í¹ıÈÎºÎÔªËØ£¬
- *    µü´úÆ÷ĞèÒª·µ»Ø¸ø¶¨Í°ÉÏµÄËùÓĞ¼ü£¬
- *    ÒÔ¼°ÒòÎªÀ©Õ¹¹şÏ£±í¶ø²úÉú³öÀ´µÄĞÂ±í£¬
- *    ËùÒÔµü´úÆ÷±ØĞëÔÚÒ»´Îµü´úÖĞ·µ»Ø¶à¸öÔªËØ¡£
+ *    ä¸ºäº†ä¸é”™è¿‡ä»»ä½•å…ƒç´ ï¼Œ
+ *    è¿­ä»£å™¨éœ€è¦è¿”å›ç»™å®šæ¡¶ä¸Šçš„æ‰€æœ‰é”®ï¼Œ
+ *    ä»¥åŠå› ä¸ºæ‰©å±•å“ˆå¸Œè¡¨è€Œäº§ç”Ÿå‡ºæ¥çš„æ–°è¡¨ï¼Œ
+ *    æ‰€ä»¥è¿­ä»£å™¨å¿…é¡»åœ¨ä¸€æ¬¡è¿­ä»£ä¸­è¿”å›å¤šä¸ªå…ƒç´ ã€‚
  * 3) The reverse cursor is somewhat hard to understand at first, but this
  *    comment is supposed to help.
- *    ¶ÔÓÎ±ê½øĞĞ·­×ª£¨reverse£©µÄÔ­Òò³õ¿´ÉÏÈ¥±È½ÏÄÑÒÔÀí½â£¬
- *    ²»¹ıÔÄ¶ÁÕâ·İ×¢ÊÍÓ¦¸Ã»áÓĞËù°ïÖú¡£
- */ //¿ÉÒÔ²Î¿¼http://chenzhenianqing.cn/articles/1101.html
+ *    å¯¹æ¸¸æ ‡è¿›è¡Œç¿»è½¬ï¼ˆreverseï¼‰çš„åŸå› åˆçœ‹ä¸Šå»æ¯”è¾ƒéš¾ä»¥ç†è§£ï¼Œ
+ *    ä¸è¿‡é˜…è¯»è¿™ä»½æ³¨é‡Šåº”è¯¥ä¼šæœ‰æ‰€å¸®åŠ©ã€‚
+ */ //å¯ä»¥å‚è€ƒhttp://chenzhenianqing.cn/articles/1101.html
 unsigned long dictScan(dict *d,
                        unsigned long v,
                        dictScanFunction *fn,
@@ -1321,47 +1321,47 @@ unsigned long dictScan(dict *d,
     const dictEntry *de;
     unsigned long m0, m1;
 
-    // Ìø¹ı¿Õ×Öµä
+    // è·³è¿‡ç©ºå­—å…¸
     if (dictSize(d) == 0) return 0;
 
-    // µü´úÖ»ÓĞÒ»¸ö¹şÏ£±íµÄ×Öµä
+    // è¿­ä»£åªæœ‰ä¸€ä¸ªå“ˆå¸Œè¡¨çš„å­—å…¸
     if (!dictIsRehashing(d)) {
 
-        // Ö¸Ïò¹şÏ£±í
+        // æŒ‡å‘å“ˆå¸Œè¡¨
         t0 = &(d->ht[0]);
 
-        // ¼ÇÂ¼ mask
+        // è®°å½• mask
         m0 = t0->sizemask;
 
         /* Emit entries at cursor */
-        // Ö¸Ïò¹şÏ£Í°
+        // æŒ‡å‘å“ˆå¸Œæ¡¶
         de = t0->table[v & m0];
-        // ±éÀúÍ°ÖĞµÄËùÓĞ½Úµã
+        // éå†æ¡¶ä¸­çš„æ‰€æœ‰èŠ‚ç‚¹
         while (de) {
             fn(privdata, de);
             de = de->next;
         }
 
-    // µü´úÓĞÁ½¸ö¹şÏ£±íµÄ×Öµä
+    // è¿­ä»£æœ‰ä¸¤ä¸ªå“ˆå¸Œè¡¨çš„å­—å…¸
     } else {
 
-        // Ö¸ÏòÁ½¸ö¹şÏ£±í
+        // æŒ‡å‘ä¸¤ä¸ªå“ˆå¸Œè¡¨
         t0 = &d->ht[0];
         t1 = &d->ht[1];
 
         /* Make sure t0 is the smaller and t1 is the bigger table */
-        // È·±£ t0 ±È t1 ÒªĞ¡
+        // ç¡®ä¿ t0 æ¯” t1 è¦å°
         if (t0->size > t1->size) {
             t0 = &d->ht[1];
             t1 = &d->ht[0];
         }
 
-        // ¼ÇÂ¼ÑÚÂë
+        // è®°å½•æ©ç 
         m0 = t0->sizemask;
         m1 = t1->sizemask;
 
         /* Emit entries at cursor */
-        // Ö¸ÏòÍ°£¬²¢µü´úÍ°ÖĞµÄËùÓĞ½Úµã
+        // æŒ‡å‘æ¡¶ï¼Œå¹¶è¿­ä»£æ¡¶ä¸­çš„æ‰€æœ‰èŠ‚ç‚¹
         de = t0->table[v & m0];
         while (de) {
             fn(privdata, de);
@@ -1370,12 +1370,12 @@ unsigned long dictScan(dict *d,
 
         /* Iterate over indices in larger table that are the expansion
          * of the index pointed to by the cursor in the smaller table */
-        // Iterate over indices in larger table             // µü´ú´ó±íÖĞµÄÍ°
-        // that are the expansion of the index pointed to   // ÕâĞ©Í°±»Ë÷ÒıµÄ expansion ËùÖ¸Ïò
+        // Iterate over indices in larger table             // è¿­ä»£å¤§è¡¨ä¸­çš„æ¡¶
+        // that are the expansion of the index pointed to   // è¿™äº›æ¡¶è¢«ç´¢å¼•çš„ expansion æ‰€æŒ‡å‘
         // by the cursor in the smaller table               //
         do {
             /* Emit entries at cursor */
-            // Ö¸ÏòÍ°£¬²¢µü´úÍ°ÖĞµÄËùÓĞ½Úµã
+            // æŒ‡å‘æ¡¶ï¼Œå¹¶è¿­ä»£æ¡¶ä¸­çš„æ‰€æœ‰èŠ‚ç‚¹
             de = t1->table[v & m1];
             while (de) {
                 fn(privdata, de);
@@ -1405,19 +1405,19 @@ unsigned long dictScan(dict *d,
 
 /* Expand the hash table if needed */
 /*
- * ¸ù¾İĞèÒª£¬³õÊ¼»¯×Öµä£¨µÄ¹şÏ£±í£©£¬»òÕß¶Ô×Öµä£¨µÄÏÖÓĞ¹şÏ£±í£©½øĞĞÀ©Õ¹
+ * æ ¹æ®éœ€è¦ï¼Œåˆå§‹åŒ–å­—å…¸ï¼ˆçš„å“ˆå¸Œè¡¨ï¼‰ï¼Œæˆ–è€…å¯¹å­—å…¸ï¼ˆçš„ç°æœ‰å“ˆå¸Œè¡¨ï¼‰è¿›è¡Œæ‰©å±•
  *
  * T = O(N)
- */ /* rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ı³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(ÕâÀï¾ö¶¨ÊÇ·ñĞèÒªÀ©Õ¹hash)->dictExpand 
-Ëõ¼õhash¹ı³Ì:serverCron->tryResizeHashTables->dictResize(ÕâÀï¾ø¶ÔËõ¼õºóµÄÍ°Êı)->dictExpand */
+ */ /* rehashæ‰©å¤§è°ƒç”¨å…³ç³»è°ƒç”¨è¿‡ç¨‹:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(è¿™é‡Œå†³å®šæ˜¯å¦éœ€è¦æ‰©å±•hash)->dictExpand 
+ç¼©å‡hashè¿‡ç¨‹:serverCron->tryResizeHashTables->dictResize(è¿™é‡Œç»å¯¹ç¼©å‡åçš„æ¡¶æ•°)->dictExpand */
 static int _dictExpandIfNeeded(dict *d)
 {
     /* Incremental rehashing already in progress. Return. */
-    // ½¥½øÊ½ rehash ÒÑ¾­ÔÚ½øĞĞÁË£¬Ö±½Ó·µ»Ø
+    // æ¸è¿›å¼ rehash å·²ç»åœ¨è¿›è¡Œäº†ï¼Œç›´æ¥è¿”å›
     if (dictIsRehashing(d)) return DICT_OK;
 
     /* If the hash table is empty expand it to the initial size. */
-    // Èç¹û×Öµä£¨µÄ 0 ºÅ¹şÏ£±í£©Îª¿Õ£¬ÄÇÃ´´´½¨²¢·µ»Ø³õÊ¼»¯´óĞ¡µÄ 0 ºÅ¹şÏ£±í
+    // å¦‚æœå­—å…¸ï¼ˆçš„ 0 å·å“ˆå¸Œè¡¨ï¼‰ä¸ºç©ºï¼Œé‚£ä¹ˆåˆ›å»ºå¹¶è¿”å›åˆå§‹åŒ–å¤§å°çš„ 0 å·å“ˆå¸Œè¡¨
     // T = O(1)
     if (d->ht[0].size == 0) return dictExpand(d, DICT_HT_INITIAL_SIZE);
 
@@ -1425,15 +1425,15 @@ static int _dictExpandIfNeeded(dict *d)
      * table (global setting) or we should avoid it but the ratio between
      * elements/buckets is over the "safe" threshold, we resize doubling
      * the number of buckets. */
-    // Ò»ÏÂÁ½¸öÌõ¼şÖ®Ò»ÎªÕæÊ±£¬¶Ô×Öµä½øĞĞÀ©Õ¹
-    // 1£©×ÖµäÒÑÊ¹ÓÃ½ÚµãÊıºÍ×Öµä´óĞ¡Ö®¼äµÄ±ÈÂÊ½Ó½ü 1£º1
-    //    ²¢ÇÒ dict_can_resize ÎªÕæ
-    // 2£©ÒÑÊ¹ÓÃ½ÚµãÊıºÍ×Öµä´óĞ¡Ö®¼äµÄ±ÈÂÊ³¬¹ı dict_force_resize_ratio
+    // ä¸€ä¸‹ä¸¤ä¸ªæ¡ä»¶ä¹‹ä¸€ä¸ºçœŸæ—¶ï¼Œå¯¹å­—å…¸è¿›è¡Œæ‰©å±•
+    // 1ï¼‰å­—å…¸å·²ä½¿ç”¨èŠ‚ç‚¹æ•°å’Œå­—å…¸å¤§å°ä¹‹é—´çš„æ¯”ç‡æ¥è¿‘ 1ï¼š1
+    //    å¹¶ä¸” dict_can_resize ä¸ºçœŸ
+    // 2ï¼‰å·²ä½¿ç”¨èŠ‚ç‚¹æ•°å’Œå­—å…¸å¤§å°ä¹‹é—´çš„æ¯”ç‡è¶…è¿‡ dict_force_resize_ratio
     if (d->ht[0].used >= d->ht[0].size &&
         (dict_can_resize ||
          d->ht[0].used/d->ht[0].size > dict_force_resize_ratio))
     {
-        // ĞÂ¹şÏ£±íµÄ´óĞ¡ÖÁÉÙÊÇÄ¿Ç°ÒÑÊ¹ÓÃ½ÚµãÊıµÄÁ½±¶
+        // æ–°å“ˆå¸Œè¡¨çš„å¤§å°è‡³å°‘æ˜¯ç›®å‰å·²ä½¿ç”¨èŠ‚ç‚¹æ•°çš„ä¸¤å€
         // T = O(N)
         return dictExpand(d, d->ht[0].used*2);
     }
@@ -1443,7 +1443,7 @@ static int _dictExpandIfNeeded(dict *d)
 
 /* Our hash table capability is a power of two */
 /*
- * ¼ÆËãµÚÒ»¸ö´óÓÚµÈÓÚ size µÄ 2 µÄ N ´Î·½£¬ÓÃ×÷¹şÏ£±íµÄÖµ
+ * è®¡ç®—ç¬¬ä¸€ä¸ªå¤§äºç­‰äº size çš„ 2 çš„ N æ¬¡æ–¹ï¼Œç”¨ä½œå“ˆå¸Œè¡¨çš„å€¼
  *
  * T = O(1)
  */
@@ -1463,40 +1463,40 @@ static unsigned long _dictNextPower(unsigned long size)
  * a hash entry for the given 'key'.
  * If the key already exists, -1 is returned.
  *
- * ·µ»Ø¿ÉÒÔ½« key ²åÈëµ½¹şÏ£±íµÄË÷ÒıÎ»ÖÃ
- * Èç¹û key ÒÑ¾­´æÔÚÓÚ¹şÏ£±í£¬ÄÇÃ´·µ»Ø -1
+ * è¿”å›å¯ä»¥å°† key æ’å…¥åˆ°å“ˆå¸Œè¡¨çš„ç´¢å¼•ä½ç½®
+ * å¦‚æœ key å·²ç»å­˜åœ¨äºå“ˆå¸Œè¡¨ï¼Œé‚£ä¹ˆè¿”å› -1
  *
  * Note that if we are in the process of rehashing the hash table, the
  * index is always returned in the context of the second (new) hash table. 
  *
- * ×¢Òâ£¬Èç¹û×ÖµäÕıÔÚ½øĞĞ rehash £¬ÄÇÃ´×ÜÊÇ·µ»Ø 1 ºÅ¹şÏ£±íµÄË÷Òı¡£
- * ÒòÎªÔÚ×Öµä½øĞĞ rehash Ê±£¬ĞÂ½Úµã×ÜÊÇ²åÈëµ½ 1 ºÅ¹şÏ£±í¡£
+ * æ³¨æ„ï¼Œå¦‚æœå­—å…¸æ­£åœ¨è¿›è¡Œ rehash ï¼Œé‚£ä¹ˆæ€»æ˜¯è¿”å› 1 å·å“ˆå¸Œè¡¨çš„ç´¢å¼•ã€‚
+ * å› ä¸ºåœ¨å­—å…¸è¿›è¡Œ rehash æ—¶ï¼Œæ–°èŠ‚ç‚¹æ€»æ˜¯æ’å…¥åˆ° 1 å·å“ˆå¸Œè¡¨ã€‚
  *
  * T = O(N)
- */ /* rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ı³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(ÕâÀï¾ö¶¨ÊÇ·ñĞèÒªÀ©Õ¹hash)->dictExpand 
-Ëõ¼õhash¹ı³Ì:serverCron->tryResizeHashTables->dictResize(ÕâÀï¾ø¶ÔËõ¼õºóµÄÍ°Êı)->dictExpand */
-static int _dictKeyIndex(dict *d, const void *key) //¸ù¾İkey¼ÆËãº¯ÊıÒÔkeyÎª²ÎÊı¼ÆËãkeyÖµ
+ */ /* rehashæ‰©å¤§è°ƒç”¨å…³ç³»è°ƒç”¨è¿‡ç¨‹:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(è¿™é‡Œå†³å®šæ˜¯å¦éœ€è¦æ‰©å±•hash)->dictExpand 
+ç¼©å‡hashè¿‡ç¨‹:serverCron->tryResizeHashTables->dictResize(è¿™é‡Œç»å¯¹ç¼©å‡åçš„æ¡¶æ•°)->dictExpand */
+static int _dictKeyIndex(dict *d, const void *key) //æ ¹æ®keyè®¡ç®—å‡½æ•°ä»¥keyä¸ºå‚æ•°è®¡ç®—keyå€¼
 {
     unsigned int h, idx, table;
     dictEntry *he;
 
     /* Expand the hash table if needed */
-    // µ¥²½ rehash
+    // å•æ­¥ rehash
     // T = O(N)
     if (_dictExpandIfNeeded(d) == DICT_ERR)
         return -1;
 
     /* Compute the key hash value */
-    // ¼ÆËã key µÄ¹şÏ£Öµ
+    // è®¡ç®— key çš„å“ˆå¸Œå€¼
     h = dictHashKey(d, key);
     // T = O(1)
     for (table = 0; table <= 1; table++) {
 
-        // ¼ÆËãË÷ÒıÖµ
+        // è®¡ç®—ç´¢å¼•å€¼
         idx = h & d->ht[table].sizemask;
 
         /* Search if this slot does not already contain the given key */
-        // ²éÕÒ key ÊÇ·ñ´æÔÚ
+        // æŸ¥æ‰¾ key æ˜¯å¦å­˜åœ¨
         // T = O(1)
         he = d->ht[table].table[idx];
         while(he) {
@@ -1505,33 +1505,33 @@ static int _dictKeyIndex(dict *d, const void *key) //¸ù¾İkey¼ÆËãº¯ÊıÒÔkeyÎª²ÎÊı¼
             he = he->next;
         }
 
-        // Èç¹ûÔËĞĞµ½ÕâÀïÊ±£¬ËµÃ÷ 0 ºÅ¹şÏ£±íÖĞËùÓĞ½Úµã¶¼²»°üº¬ key
-        // Èç¹ûÕâÊ± rehahs ÕıÔÚ½øĞĞ£¬ÄÇÃ´¼ÌĞø¶Ô 1 ºÅ¹şÏ£±í½øĞĞ rehash
+        // å¦‚æœè¿è¡Œåˆ°è¿™é‡Œæ—¶ï¼Œè¯´æ˜ 0 å·å“ˆå¸Œè¡¨ä¸­æ‰€æœ‰èŠ‚ç‚¹éƒ½ä¸åŒ…å« key
+        // å¦‚æœè¿™æ—¶ rehahs æ­£åœ¨è¿›è¡Œï¼Œé‚£ä¹ˆç»§ç»­å¯¹ 1 å·å“ˆå¸Œè¡¨è¿›è¡Œ rehash
         if (!dictIsRehashing(d)) break;
     }
 
-    // ·µ»ØË÷ÒıÖµ
+    // è¿”å›ç´¢å¼•å€¼
     return idx;
 }
 
 /*
- * Çå¿Õ×ÖµäÉÏµÄËùÓĞ¹şÏ£±í½Úµã£¬²¢ÖØÖÃ×ÖµäÊôĞÔ
+ * æ¸…ç©ºå­—å…¸ä¸Šçš„æ‰€æœ‰å“ˆå¸Œè¡¨èŠ‚ç‚¹ï¼Œå¹¶é‡ç½®å­—å…¸å±æ€§
  *
  * T = O(N)
  */
 void dictEmpty(dict *d, void(callback)(void*)) {
 
-    // É¾³ıÁ½¸ö¹şÏ£±íÉÏµÄËùÓĞ½Úµã
+    // åˆ é™¤ä¸¤ä¸ªå“ˆå¸Œè¡¨ä¸Šçš„æ‰€æœ‰èŠ‚ç‚¹
     // T = O(N)
     _dictClear(d,&d->ht[0],callback);
     _dictClear(d,&d->ht[1],callback);
-    // ÖØÖÃÊôĞÔ 
+    // é‡ç½®å±æ€§ 
     d->rehashidx = -1;
     d->iterators = 0;
 }
 
 /*
- * ¿ªÆô×Ô¶¯ rehash
+ * å¼€å¯è‡ªåŠ¨ rehash
  *
  * T = O(1)
  */
@@ -1540,7 +1540,7 @@ void dictEnableResize(void) {
 }
 
 /*
- * ¹Ø±Õ×Ô¶¯ rehash
+ * å…³é—­è‡ªåŠ¨ rehash
  *
  * T = O(1)
  */
