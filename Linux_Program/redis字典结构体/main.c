@@ -11,17 +11,17 @@ int main(int argc, char *argv[])
     mydict = dict_create(NULL);
 
 
-    for(i=0;argv[i] != NULL; i++)
+    for(i=1;argv[i] != NULL; i++)
     {
         printf("argv[%d] = %s\n",i,argv[i]);
-        dict_add(mydict,&i,1,argv[i],strlen(argv[i]));
+        dict_add(mydict,argv[i],strlen(argv[i]),argv[i],strlen(argv[i]));
     }
     i--;
-    for(i;i>=0;i--)
+    for(i;i>0;i--)
     {
-        printf("[%d]value:  %s\n",i,(char *)dict_fetch_value(mydict,&i,1));
+        printf("[%s]value:  %s\n",argv[i],(char *)dict_fetch_value(mydict,argv[i],strlen(argv[i])));
     }
 
-    
+    dict_release(mydict);
     return 0;
 }
