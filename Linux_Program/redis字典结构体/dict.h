@@ -1,64 +1,487 @@
-#include<stdio.h>
+/* Hash Tables Implementation.
+ *
+ * This file implements in-memory hash tables with insert/del/replace/find/
+ * get-random-element operations. Hash tables will auto-resize if needed
+ * tables of power of two in size are used, collisions are handled by
+ * chaining. See the source code for more information... :)
+ *
+ * Õâ¸öÎÄ¼þÊµÏÖÁËÒ»¸öÄÚ´æ¹þÏ£±í£¬
+ * ËüÖ§³Ö²åÈë¡¢É¾³ý¡¢Ìæ»»¡¢²éÕÒºÍ»ñÈ¡Ëæ»úÔªËØµÈ²Ù×÷¡£
+ *
+ * ¹þÏ£±í»á×Ô¶¯ÔÚ±íµÄ´óÐ¡µÄ¶þ´Î·½Ö®¼ä½øÐÐµ÷Õû¡£
+ *
+ * ¼üµÄ³åÍ»Í¨¹ýÁ´±íÀ´½â¾ö¡£
+ *
+ * Copyright (c) 2006-2012, Salvatore Sanfilippo <antirez at gmail dot com>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *   * Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Redis nor the names of its contributors may be used
+ *     to endorse or promote products derived from this software without
+ *     specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
-typedef struct dictEntry
-{
-    void *key;
+#include <stdint.h>
 
-    union 
-    {
+#ifndef __DICT_H
+#define __DICT_H
+
+/*
+ * ×ÖµäµÄ²Ù×÷×´Ì¬
+ */
+// ²Ù×÷³É¹¦
+#define DICT_OK 0
+// ²Ù×÷Ê§°Ü£¨»ò³ö´í£©
+#define DICT_ERR 1
+
+/* Unused arguments generate annoying warnings... */
+// Èç¹û×ÖµäµÄË½ÓÐÊý¾Ý²»Ê¹ÓÃÊ±
+// ÓÃÕâ¸öºêÀ´±ÜÃâ±àÒëÆ÷´íÎó
+#define DICT_NOTUSED(V) ((void) V)
+
+/*
+    Ê×ÏÈÃüÁîÐÐÖÐµÄ×Ö·û´®ÏÈ±£´æµ½½øÈëxxxCommand(ÈçsetCommand)º¯ÊýÊ±£¬¸÷¸öÃüÁî×Ö·û´®µ¥´¿ÒÑ¾­×ª»»ÎªredisObject±£´æµ½redisClient->argv[]ÖÐ£¬
+    È»ºóÔÚsetKeyµÈÏà¹Øº¯ÊýÖÐ°Ñkey-value×ª»»ÎªdictEntry½ÚµãµÄkeyºÍv(·Ö±ð¶ÔÓ¦keyºÍvalue)Ìí¼Óµ½dict->dictht->table[]  hashÖÐ,ÖÁÓÚÔõÃ´Ìí¼Óµ½dictEntry
+    ½ÚµãµÄkeyºÍvalueÖÐ¿ÉÒÔ²Î¿¼dict->type( typeÎªxxxDictType ÀýÈçkeyptrDictTypeµÈ) £¬¼ûdictCreate
+*/
+
+/*
+ * ¹þÏ£±í½Úµã
+ */
+typedef struct dictEntry { 
+//¸Ã½á¹¹Ê½×Öµädictht->table[]  hashÖÐµÄ³ÉÔ±½á¹¹£¬ÈÎºÎkey - value¼üÖµ¶Ô¶¼»áÌí¼Óµ½×ª»»ÎªdictEntry½á¹¹Ìí¼Óµ½×Öµähash tableÖÐ
+    /*
+  key ÊôÐÔ±£´æ×Å¼üÖµ¶ÔÖÐµÄ¼ü£¬ 
+  ¶ø v ÊôÐÔÔò±£´æ×Å¼üÖµ¶ÔÖÐµÄÖµ£¬ ÆäÖÐ¼üÖµ¶ÔµÄÖµ¿ÉÒÔÊÇÒ»¸öÖ¸Õë£¬ »òÕßÊÇÒ»¸ö uint64_t ÕûÊý£¬ ÓÖ»òÕßÊÇÒ»¸ö int64_t ÕûÊý¡£
+     */
+     /*
+    Ê×ÏÈÃüÁîÐÐÖÐµÄ×Ö·û´®ÏÈ±£´æµ½½øÈëxxxCommand(ÈçsetCommand)º¯ÊýÊ±£¬¸÷¸öÃüÁî×Ö·û´®µ¥´¿ÒÑ¾­×ª»»ÎªredisObject±£´æµ½redisClient->argv[]ÖÐ£¬
+    È»ºóÔÚsetKeyµÈÏà¹Øº¯ÊýÖÐ°Ñkey-value×ª»»ÎªdictEntry½ÚµãµÄkeyºÍv(·Ö±ð¶ÔÓ¦keyºÍvalue)Ìí¼Óµ½dictht->table[]  hashÖÐ
+    */
+    // ¼ü
+    void *key; //¶ÔÓ¦Ò»¸örobj
+    
+    /*
+      key ÊôÐÔ±£´æ×Å¼üÖµ¶ÔÖÐµÄ¼ü£¬ 
+      ¶ø v ÊôÐÔÔò±£´æ×Å¼üÖµ¶ÔÖÐµÄÖµ£¬ ÆäÖÐ¼üÖµ¶ÔµÄÖµ¿ÉÒÔÊÇÒ»¸öÖ¸Õë£¬ »òÕßÊÇÒ»¸ö uint64_t ÕûÊý£¬ ÓÖ»òÕßÊÇÒ»¸ö int64_t ÕûÊý¡£
+     */
+     /*
+    Ê×ÏÈÃüÁîÐÐÖÐµÄ×Ö·û´®ÏÈ±£´æµ½½øÈëxxxCommand(ÈçsetCommand)º¯ÊýÊ±£¬¸÷¸öÃüÁî×Ö·û´®µ¥´¿ÒÑ¾­×ª»»ÎªredisObject±£´æµ½redisClient->argv[]ÖÐ£¬
+    È»ºóÔÚsetKeyµÈÏà¹Øº¯ÊýÖÐ°Ñkey-value×ª»»ÎªdictEntry½ÚµãµÄkeyºÍv(·Ö±ð¶ÔÓ¦keyºÍvalue)Ìí¼Óµ½dictht->table[]  hashÖÐ
+    */
+    // Öµ
+    union {
         void *val;
         uint64_t u64;
-        int64_t s64;
-    } v;
+        int64_t s64;//Ò»°ã¼ÇÂ¼µÄÊÇ¹ýÆÚ¼üdb->expiresÖÐÃ¿¸ö¼üµÄ¹ýÆÚÊ±¼ä  µ¥Î»ms
+    } v;//¶ÔÓ¦Ò»¸örobj
+
     
+    //next ÊôÐÔÊÇÖ¸ÏòÁíÒ»¸ö¹þÏ£±í½ÚµãµÄÖ¸Õë£¬ Õâ¸öÖ¸Õë¿ÉÒÔ½«¶à¸ö¹þÏ£ÖµÏàÍ¬µÄ¼üÖµ¶ÔÁ¬½ÓÔÚÒ»´Î£¬ ÒÔ´ËÀ´½â¾ö¼ü³åÍ»£¨collision£©µÄÎÊÌâ¡£
+    // Á´Íùºó¼Ì½Úµã
+    // Ö¸ÏòÏÂ¸ö¹þÏ£±í½Úµã£¬ÐÎ³ÉÁ´±í
     struct dictEntry *next;
+
 } dictEntry;
 
-typedef struct dictht
-{
-    dictEntry **table;
 
-    unsigned long size;
+/*
+ * ×ÖµäÀàÐÍÌØ¶¨º¯Êý
+ */ //dictTypeÖ÷ÒªÓÉxxxDictType(dbDictType zsetDictType setDictTypeµÈ)
+typedef struct dictType {//º¯Êýprivdata²ÎÊý´Ódict->privdataÖÐ»ñÈ¡
 
-    unsigned long sizemask;
+    // ¼ÆËã¹þÏ£ÖµµÄº¯Êý // ¼ÆËã¼üµÄ¹þÏ£Öµº¯Êý, ¼ÆËãkeyÔÚhash tableÖÐµÄ´æ´¢Î»ÖÃ£¬²»Í¬µÄdict¿ÉÒÔÓÐ²»Í¬µÄhash function.
+    unsigned int (*hashFunction)(const void *key);//dictHashKeyÖÐÖ´ÐÐ¸Ãº¯Êý
 
-    unsigned long used;
-} dictht;
+    // ¸´ÖÆ¼üµÄº¯Êý
+    void *(*keyDup)(void *privdata, const void *key);//dictSetKey
 
-typedef struct dictType
-{
-    //è®¡ç®—å“ˆå¸Œå€¼çš„å‡½æ•°
-    unsigned int (*hashFunction)(const void *key);
+    // ¸´ÖÆÖµµÄº¯Êý //Ò²¾ÍÊÇÒÔkeyÎª¼üÖµ¼ÆËã³öÒ»¸öÖµÀ´Ñ¡³ö¶ÔÓ¦µÄhashÍ°£¬°Ñkey½Úµã·ÅÈëÍ°ÖÐ£¬Í¬Ê±Ö´ÐÐvaldupÀ´·ÖÅä¿Õ¼ä´æ´¢key¶ÔÓ¦µÄvalue
+    void *(*valDup)(void *privdata, const void *obj); //dictSetVal  ±£´æÔÚdictEntry->v->valueÖÐ£¬È»ºóÔÚ
 
-    //å¤åˆ¶é”®çš„å‡½æ•°
-    void *(*keyDup)(void *privdata, const void *key);
+    // ¶Ô±È¼üµÄº¯Êý
+    int (*keyCompare)(void *privdata, const void *key1, const void *key2);//dictCompareKeys
 
-    //å¤åˆ¶å€¼çš„å‡½æ•°
-    void *(*valDup)(void *privdata, const void *obj);
+    // Ïú»Ù¼üµÄº¯Êý
+    void (*keyDestructor)(void *privdata, void *key);//dictFreeKey
+    
+    // Ïú»ÙÖµµÄº¯Êý // ÖµµÄÊÍ¹¹º¯Êý  dictFreeVal  É¾³ýhashÖÐµÄkey½ÚµãµÄÊ±ºò»áÖ´ÐÐ¸Ãº¯Êý½øÐÐÉ¾³ývalue
+    void (*valDestructor)(void *privdata, void *obj);//dictFreeVal
 
-    //å¯¹æ¯”é”®çš„å‡½æ•°
-    int (*keyCompare)(void *privdata, const void *key1, const void *key2);
-
-    //é”€æ¯é”®çš„å‡½æ•°
-    void (*keyDestructor)(void *privdata, void *key);
-
-    //é”€æ¯å€¼çš„å‡½æ•°
-    void (*valDestructor)(void *privdata, void* obj);
 } dictType;
 
-//å­—å…¸ç»“æž„
-typedef struct dict
-{
+
+/*
+½â¾ö¼ü³åÍ»
+
+µ±ÓÐÁ½¸ö»òÒÔÉÏÊýÁ¿µÄ¼ü±»·ÖÅäµ½ÁË¹þÏ£±íÊý×éµÄÍ¬Ò»¸öË÷ÒýÉÏÃæÊ±£¬ ÎÒÃÇ³ÆÕâÐ©¼ü·¢ÉúÁË³åÍ»£¨collision£©¡£
+
+Redis µÄ¹þÏ£±íÊ¹ÓÃÁ´µØÖ··¨£¨separate chaining£©À´½â¾ö¼ü³åÍ»£º Ã¿¸ö¹þÏ£±í½Úµã¶¼ÓÐÒ»¸ö next Ö¸Õë£¬ ¶à¸ö¹þÏ£±í½Úµã¿ÉÒÔÓÃ next 
+Ö¸Õë¹¹³ÉÒ»¸öµ¥ÏòÁ´±í£¬ ±»·ÖÅäµ½Í¬Ò»¸öË÷ÒýÉÏµÄ¶à¸ö½Úµã¿ÉÒÔÓÃÕâ¸öµ¥ÏòÁ´±íÁ¬½ÓÆðÀ´£¬ Õâ¾Í½â¾öÁË¼ü³åÍ»µÄÎÊÌâ¡£
+
+¾Ù¸öÀý×Ó£¬ ¼ÙÉè³ÌÐòÒª½«¼üÖµ¶Ô k2 ºÍ v2 Ìí¼Óµ½Í¼ 4-6 ËùÊ¾µÄ¹þÏ£±íÀïÃæ£¬ ²¢ÇÒ¼ÆËãµÃ³ö k2 µÄË÷ÒýÖµÎª 2 £¬ ÄÇÃ´¼ü k1 ºÍ k2 ½«
+²úÉú³åÍ»£¬ ¶ø½â¾ö³åÍ»µÄ°ì·¨¾ÍÊÇÊ¹ÓÃ next Ö¸Õë½«¼ü k2 ºÍ k1 ËùÔÚµÄ½ÚµãÁ¬½ÓÆðÀ´£¬
+
+ÒòÎª dictEntry ½Úµã×é³ÉµÄÁ´±íÃ»ÓÐÖ¸ÏòÁ´±í±íÎ²µÄÖ¸Õë£¬ ËùÒÔÎªÁËËÙ¶È¿¼ÂÇ£¬ ³ÌÐò×ÜÊÇ½«ÐÂ½ÚµãÌí¼Óµ½Á´±íµÄ±íÍ·Î»ÖÃ£¨¸´ÔÓ¶ÈÎª O(1)£©£¬ 
+ÅÅÔÚÆäËûÒÑÓÐ½ÚµãµÄÇ°Ãæ¡£
+*/
+
+/*
+rehash
+
+Ëæ×Å²Ù×÷µÄ²»¶ÏÖ´ÐÐ£¬ ¹þÏ£±í±£´æµÄ¼üÖµ¶Ô»áÖð½¥µØÔö¶à»òÕß¼õÉÙ£¬ ÎªÁËÈÃ¹þÏ£±íµÄ¸ºÔØÒò×Ó£¨load factor£©Î¬³ÖÔÚÒ»¸öºÏÀíµÄ·¶Î§Ö®ÄÚ£¬ 
+µ±¹þÏ£±í±£´æµÄ¼üÖµ¶ÔÊýÁ¿Ì«¶à»òÕßÌ«ÉÙÊ±£¬ ³ÌÐòÐèÒª¶Ô¹þÏ£±íµÄ´óÐ¡½øÐÐÏàÓ¦µÄÀ©Õ¹»òÕßÊÕËõ¡£
+
+À©Õ¹ºÍÊÕËõ¹þÏ£±íµÄ¹¤×÷¿ÉÒÔÍ¨¹ýÖ´ÐÐ rehash £¨ÖØÐÂÉ¢ÁÐ£©²Ù×÷À´Íê³É£¬ Redis ¶Ô×ÖµäµÄ¹þÏ£±íÖ´ÐÐ rehash µÄ²½ÖèÈçÏÂ£º
+1.Îª×ÖµäµÄ ht[1] ¹þÏ£±í·ÖÅä¿Õ¼ä£¬ Õâ¸ö¹þÏ£±íµÄ¿Õ¼ä´óÐ¡È¡¾öÓÚÒªÖ´ÐÐµÄ²Ù×÷£¬ ÒÔ¼° ht[0] µ±Ç°°üº¬µÄ¼üÖµ¶ÔÊýÁ¿ £¨Ò²¼´ÊÇ ht[0].used 
+ÊôÐÔµÄÖµ£©£ºÈç¹ûÖ´ÐÐµÄÊÇÀ©Õ¹²Ù×÷£¬ ÄÇÃ´ ht[1] µÄ´óÐ¡ÎªµÚÒ»¸ö´óÓÚµÈÓÚ ht[0].used * 2 µÄ 2^n £¨2 µÄ n ´Î·½ÃÝ£©£»ÀýÈçÏÖÔÚusedÊÇ5£¬Ôò
+ht[1] hash±íÖÐµÄÍ°¸öÊý¾ÍÊÇ´óÓÚµÈÓÚ5 *2=10µÄ×î½üµÄÒ»¸ö2µÄn´ÎÃÝ£¬Ò²¾ÍÊÇ16£¬Í¬ÀíÈç¹ûÊÇ8µÈ£¬ÔòÎª´óÓÚµÈÓÚ8*2=16×î½üµÄ2µÄn´ÎÃÝ£¬¾ÍÊÇ16
+
+Èç¹ûÖ´ÐÐµÄÊÇÊÕËõ²Ù×÷£¬ ÄÇÃ´ ht[1] µÄ´óÐ¡ÎªµÚÒ»¸ö´óÓÚµÈÓÚ ht[0].used µÄ 2^n ¡£ÀýÈç5£¬ÔòÀëËû×î½üµÄ2µÄn´ÎÃÝÎª8£¬Èç¹ûÎª8£¬Ôò»¹ÊÇÎª8 ????????¸Ð¾õÕâ¸öÓÐµãÎÊÌâ£¬Õâ²»ÊÇÀ©ÈÝÂï£¬Ã»ÊÕËõ
+
+2.½«±£´æÔÚ ht[0] ÖÐµÄËùÓÐ¼üÖµ¶Ô rehash µ½ ht[1] ÉÏÃæ£º rehash Ö¸µÄÊÇÖØÐÂ¼ÆËã¼üµÄ¹þÏ£ÖµºÍË÷ÒýÖµ£¬ È»ºó½«¼üÖµ¶Ô·ÅÖÃµ½ ht[1] ¹þÏ£±íµÄÖ¸¶¨Î»ÖÃÉÏ¡£
+3.µ± ht[0] °üº¬µÄËùÓÐ¼üÖµ¶Ô¶¼Ç¨ÒÆµ½ÁË ht[1] Ö®ºó £¨ht[0] ±äÎª¿Õ±í£©£¬ ÊÍ·Å ht[0] £¬ ½« ht[1] ÉèÖÃÎª ht[0] £¬ ²¢ÔÚ ht[1] ÐÂ´´½¨Ò»¸ö¿Õ°×¹þÏ£±í£¬ ÎªÏÂÒ»´Î rehash ×ö×¼±¸¡£
+
+¾Ù¸öÀý×Ó£¬ ¼ÙÉè³ÌÐòÒª¶Ô×ÖµäµÄ ht[0] ½øÐÐÀ©Õ¹²Ù×÷£¬ ÄÇÃ´³ÌÐò½«Ö´ÐÐÒÔÏÂ²½Öè£º
+1.ht[0].used µ±Ç°µÄÖµÎª 4 £¬ 4 * 2 = 8 £¬ ¶ø 8 £¨2^3£©Ç¡ºÃÊÇµÚÒ»¸ö´óÓÚµÈÓÚ 4 µÄ 2 µÄ n ´Î·½£¬ ËùÒÔ³ÌÐò»á½« ht[1] ¹þÏ£±íµÄ´óÐ¡ÉèÖÃÎª 8 ¡£ À©Õ¹ºóµÄ´óÐ¡²Î¿¼_dictExpandIfNeeded
+2.½« ht[0] °üº¬µÄËÄ¸ö¼üÖµ¶Ô¶¼ rehash µ½ ht[1]
+3.ÊÍ·Å ht[0] £¬²¢½« ht[1] ÉèÖÃÎª ht[0] £¬È»ºóÎª ht[1] ·ÖÅäÒ»¸ö¿Õ°×¹þÏ£±í
+
+ÖÁ´Ë£¬ ¶Ô¹þÏ£±íµÄÀ©Õ¹²Ù×÷Ö´ÐÐÍê±Ï£¬ ³ÌÐò³É¹¦½«¹þÏ£±íµÄ´óÐ¡´ÓÔ­À´µÄ 4 ¸ÄÎªÁËÏÖÔÚµÄ 8 ¡£
+
+
+
+¹þÏ£±íµÄÀ©Õ¹ÓëÊÕËõ
+
+µ±ÒÔÏÂÌõ¼þÖÐµÄÈÎÒâÒ»¸ö±»Âú×ãÊ±£¬ ³ÌÐò»á×Ô¶¯¿ªÊ¼¶Ô¹þÏ£±íÖ´ÐÐÀ©Õ¹²Ù×÷£º
+1.·þÎñÆ÷Ä¿Ç°Ã»ÓÐÔÚÖ´ÐÐ BGSAVE ÃüÁî»òÕß BGREWRITEAOF ÃüÁî£¬ ²¢ÇÒ¹þÏ£±íµÄ¸ºÔØÒò×Ó´óÓÚµÈÓÚ 1 £»
+2.·þÎñÆ÷Ä¿Ç°ÕýÔÚÖ´ÐÐ BGSAVE ÃüÁî»òÕß BGREWRITEAOF ÃüÁî£¬ ²¢ÇÒ¹þÏ£±íµÄ¸ºÔØÒò×Ó´óÓÚµÈÓÚ 5 £»
+ÁíÒ»·½Ãæ£¬ µ±¹þÏ£±íµÄ¸ºÔØÒò×ÓÐ¡ÓÚ 0.1 Ê±£¬ ³ÌÐò×Ô¶¯¿ªÊ¼¶Ô¹þÏ£±íÖ´ÐÐÊÕËõ²Ù×÷¡£
+
+ÆäÖÐ¹þÏ£±íµÄ¸ºÔØÒò×Ó¿ÉÒÔÍ¨¹ý¹«Ê½£º
+
+
+# ¸ºÔØÒò×Ó = ¹þÏ£±íÒÑ±£´æ½ÚµãÊýÁ¿ / ¹þÏ£±í´óÐ¡
+load_factor = ht[0].used / ht[0].size
+
+¼ÆËãµÃ³ö¡£
+±ÈÈçËµ£¬ ¶ÔÓÚÒ»¸ö´óÐ¡Îª 4 £¬ °üº¬ 4 ¸ö¼üÖµ¶ÔµÄ¹þÏ£±íÀ´Ëµ£¬ Õâ¸ö¹þÏ£±íµÄ¸ºÔØÒò×ÓÎª£º
+load_factor = 4 / 4 = 1
+ÓÖ±ÈÈçËµ£¬ ¶ÔÓÚÒ»¸ö´óÐ¡Îª 512 £¬ °üº¬ 256 ¸ö¼üÖµ¶ÔµÄ¹þÏ£±íÀ´Ëµ£¬ Õâ¸ö¹þÏ£±íµÄ¸ºÔØÒò×ÓÎª£º
+load_factor = 256 / 512 = 0.5
+
+¸ù¾Ý BGSAVE ÃüÁî»ò BGREWRITEAOF ÃüÁîÊÇ·ñÕýÔÚÖ´ÐÐ£¬ ·þÎñÆ÷Ö´ÐÐÀ©Õ¹²Ù×÷ËùÐèµÄ¸ºÔØÒò×Ó²¢²»ÏàÍ¬£¬ ÕâÊÇÒòÎªÔÚÖ´ÐÐ BGSAVE ÃüÁî
+»ò BGREWRITEAOF ÃüÁîµÄ¹ý³ÌÖÐ£¬ Redis ÐèÒª´´½¨µ±Ç°·þÎñÆ÷½ø³ÌµÄ×Ó½ø³Ì£¬ ¶ø´ó¶àÊý²Ù×÷ÏµÍ³¶¼²ÉÓÃÐ´Ê±¸´ÖÆ£¨copy-on-write£©¼¼Êõ
+À´ÓÅ»¯×Ó½ø³ÌµÄÊ¹ÓÃÐ§ÂÊ£¬ ËùÒÔÔÚ×Ó½ø³Ì´æÔÚÆÚ¼ä£¬ ·þÎñÆ÷»áÌá¸ßÖ´ÐÐÀ©Õ¹²Ù×÷ËùÐèµÄ¸ºÔØÒò×Ó£¬ ´Ó¶ø¾¡¿ÉÄÜµØ±ÜÃâÔÚ×Ó½ø³Ì´æÔÚÆÚ¼ä
+½øÐÐ¹þÏ£±íÀ©Õ¹²Ù×÷£¬ Õâ¿ÉÒÔ±ÜÃâ²»±ØÒªµÄÄÚ´æÐ´Èë²Ù×÷£¬ ×î´óÏÞ¶ÈµØ½ÚÔ¼ÄÚ´æ¡£
+
+
+ÁíÒ»·½Ãæ£¬ µ±¹þÏ£±íµÄ¸ºÔØÒò×ÓÐ¡ÓÚ 0.1 Ê±£¬ ³ÌÐò×Ô¶¯¿ªÊ¼¶Ô¹þÏ£±íÖ´ÐÐÊÕËõ²Ù×÷¡£
+
+1£©×ÜµÄÔªËØ¸öÊý ³ý DICTÍ°µÄ¸öÊýµÃµ½Ã¿¸öÍ°Æ½¾ù´æ´¢µÄÔªËØ¸öÊý(pre_num),Èç¹û pre_num > dict_force_resize_ratio,¾Í»á´¥·¢dict À©´ó²Ù×÷¡£dict_force_resize_ratio = 5¡£
+
+2£©ÔÚ×ÜÔªËØ * 10 < Í°µÄ¸öÊý£¬Ò²¾ÍÊÇ,Ìî³äÂÊ±ØÐë<10%, DICT±ã»á½øÐÐÊÕËõ£¬ÈÃtotal / bk_num ½Ó½ü 1:1¡£
+
+
+rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ý³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded->dictExpand£¬Õâ¸öº¯Êýµ÷ÓÃ¹ØÏµÊÇÐèÒªÀ©´ódictµÄµ÷ÓÃ¹ØÏµ£¬
+*/
+
+/*
+½¥½øÊ½ rehash?
+
+ÉÏÒ»½ÚËµ¹ý£¬ À©Õ¹»òÊÕËõ¹þÏ£±íÐèÒª½« ht[0] ÀïÃæµÄËùÓÐ¼üÖµ¶Ô rehash µ½ ht[1] ÀïÃæ£¬ µ«ÊÇ£¬ Õâ¸ö rehash ¶¯×÷²¢²»ÊÇÒ»´ÎÐÔ¡¢
+¼¯ÖÐÊ½µØÍê³ÉµÄ£¬ ¶øÊÇ·Ö¶à´Î¡¢½¥½øÊ½µØÍê³ÉµÄ¡£
+
+ÕâÑù×öµÄÔ­ÒòÔÚÓÚ£¬ Èç¹û ht[0] ÀïÖ»±£´æ×ÅËÄ¸ö¼üÖµ¶Ô£¬ ÄÇÃ´·þÎñÆ÷¿ÉÒÔÔÚË²¼ä¾Í½«ÕâÐ©¼üÖµ¶ÔÈ«²¿ rehash µ½ ht[1] £» µ«ÊÇ£¬ 
+Èç¹û¹þÏ£±íÀï±£´æµÄ¼üÖµ¶ÔÊýÁ¿²»ÊÇËÄ¸ö£¬ ¶øÊÇËÄ°ÙÍò¡¢ËÄÇ§ÍòÉõÖÁËÄÒÚ¸ö¼üÖµ¶Ô£¬ ÄÇÃ´ÒªÒ»´ÎÐÔ½«ÕâÐ©¼üÖµ¶ÔÈ«²¿ rehash µ½ ht[1] 
+µÄ»°£¬ ÅÓ´óµÄ¼ÆËãÁ¿¿ÉÄÜ»áµ¼ÖÂ·þÎñÆ÷ÔÚÒ»¶ÎÊ±¼äÄÚÍ£Ö¹·þÎñ¡£
+
+Òò´Ë£¬ ÎªÁË±ÜÃâ rehash ¶Ô·þÎñÆ÷ÐÔÄÜÔì³ÉÓ°Ïì£¬ ·þÎñÆ÷²»ÊÇÒ»´ÎÐÔ½« ht[0] ÀïÃæµÄËùÓÐ¼üÖµ¶ÔÈ«²¿ rehash µ½ ht[1] £¬ ¶øÊÇ·Ö¶à´Î¡¢
+½¥½øÊ½µØ½« ht[0] ÀïÃæµÄ¼üÖµ¶ÔÂýÂýµØ rehash µ½ ht[1] ¡£
+
+ÒÔÏÂÊÇ¹þÏ£±í½¥½øÊ½ rehash µÄÏêÏ¸²½Öè£º
+1.Îª ht[1] ·ÖÅä¿Õ¼ä£¬ ÈÃ×ÖµäÍ¬Ê±³ÖÓÐ ht[0] ºÍ ht[1] Á½¸ö¹þÏ£±í¡£
+2.ÔÚ×ÖµäÖÐÎ¬³ÖÒ»¸öË÷Òý¼ÆÊýÆ÷±äÁ¿ rehashidx £¬ ²¢½«ËüµÄÖµÉèÖÃÎª 0 £¬ ±íÊ¾ rehash ¹¤×÷ÕýÊ½¿ªÊ¼¡£rehashidx±íÊ¾µÄÊÇhashÍ°±ê¼Ç£¬
+    ÏÖÔÚ²Ù×÷µÄÊÇÄÇ¸öhashÍ°table[i]
+3.ÔÚ rehash ½øÐÐÆÚ¼ä£¬ Ã¿´Î¶Ô×ÖµäÖ´ÐÐÌí¼Ó¡¢É¾³ý¡¢²éÕÒ»òÕß¸üÐÂ²Ù×÷Ê±£¬ ³ÌÐò³ýÁËÖ´ÐÐÖ¸¶¨µÄ²Ù×÷ÒÔÍâ£¬ »¹»áË³´ø½« ht[0] ¹þÏ£±íÔÚ 
+  rehashidx Ë÷ÒýÉÏµÄËùÓÐ¼üÖµ¶Ô rehash µ½ ht[1] £¬ µ± rehash ¹¤×÷Íê³ÉÖ®ºó£¬ ³ÌÐò½« rehashidx ÊôÐÔµÄÖµÔöÒ»¡£Ò²¾ÍÊÇrehash²Ù×÷ÊÇÓÉ¶Ô¸Ã
+  hash¾ßÌåÍ°table[i]µÄÔö¼Ó É¾³ý ²Ù×÷ ¸úÐÂµÈ²Ù×÷´¥·¢µÄ£¬´¥·¢µ½¸ÃÍ°£¬Ôò°Ñ¸ÃÍ°ÖÐÊý¾Ý·ÅÈëht[1] hash±í×Ü
+4.Ëæ×Å×Öµä²Ù×÷µÄ²»¶ÏÖ´ÐÐ£¬ ×îÖÕÔÚÄ³¸öÊ±¼äµãÉÏ£¬ ht[0] µÄËùÓÐ¼üÖµ¶Ô¶¼»á±» rehash ÖÁ ht[1] £¬ ÕâÊ±³ÌÐò½« rehashidx ÊôÐÔµÄÖµÉèÎª -1 £¬ ±íÊ¾ rehash ²Ù×÷ÒÑÍê³É¡£
+
+½¥½øÊ½ rehash µÄºÃ´¦ÔÚÓÚËü²ÉÈ¡·Ö¶øÖÎÖ®µÄ·½Ê½£¬ ½« rehash ¼üÖµ¶ÔËùÐèµÄ¼ÆËã¹¤×÷¾ùÌ²µ½¶Ô×ÖµäµÄÃ¿¸öÌí¼Ó¡¢É¾³ý¡¢²éÕÒºÍ¸üÐÂ²Ù×÷ÉÏ£¬ 
+´Ó¶ø±ÜÃâÁË¼¯ÖÐÊ½ rehash ¶ø´øÀ´µÄÅÓ´ó¼ÆËãÁ¿¡£
+
+
+½¥½øÊ½ rehash Ö´ÐÐÆÚ¼äµÄ¹þÏ£±í²Ù×÷?
+
+ÒòÎªÔÚ½øÐÐ½¥½øÊ½ rehash µÄ¹ý³ÌÖÐ£¬ ×Öµä»áÍ¬Ê±Ê¹ÓÃ ht[0] ºÍ ht[1] Á½¸ö¹þÏ£±í£¬ ËùÒÔÔÚ½¥½øÊ½ rehash ½øÐÐÆÚ¼ä£¬ ×ÖµäµÄÉ¾³ý£¨delete£©¡¢
+²éÕÒ£¨find£©¡¢¸üÐÂ£¨update£©µÈ²Ù×÷»áÔÚÁ½¸ö¹þÏ£±íÉÏ½øÐÐ£º ±ÈÈçËµ£¬ ÒªÔÚ×ÖµäÀïÃæ²éÕÒÒ»¸ö¼üµÄ»°£¬ ³ÌÐò»áÏÈÔÚ ht[0] ÀïÃæ½øÐÐ²éÕÒ£¬ 
+Èç¹ûÃ»ÕÒµ½µÄ»°£¬ ¾Í»á¼ÌÐøµ½ ht[1] ÀïÃæ½øÐÐ²éÕÒ£¬ ÖîÈç´ËÀà¡£
+
+ÁíÍâ£¬ ÔÚ½¥½øÊ½ rehash Ö´ÐÐÆÚ¼ä£¬ ÐÂÌí¼Óµ½×ÖµäµÄ¼üÖµ¶ÔÒ»ÂÉ»á±»±£´æµ½ ht[1] ÀïÃæ£¬ ¶ø ht[0] Ôò²»ÔÙ½øÐÐÈÎºÎÌí¼Ó²Ù×÷£º 
+ÕâÒ»´ëÊ©±£Ö¤ÁË ht[0] °üº¬µÄ¼üÖµ¶ÔÊýÁ¿»áÖ»¼õ²»Ôö£¬ ²¢Ëæ×Å rehash ²Ù×÷µÄÖ´ÐÐ¶ø×îÖÕ±ä³É¿Õ±í¡£
+
+
+ rehashÀ©´óµ÷ÓÃ¹ØÏµµ÷ÓÃ¹ý³Ì:dictAddRaw->_dictKeyIndex->_dictExpandIfNeeded(ÕâÀï¾ø¶ÔÊÇ·ñÐèÒªÀ©ÈÝ)->dictExpand 
+//Ëõ¼õhash¹ý³Ì:serverCron->tryResizeHashTables->dictResize(ÕâÀï¾ø¶ÔËõ¼õºóµÄÍ°Êý)->dictExpand 
+
+Êµ¼Ê´Óht[0]µ½ht[1]µÄ¹ý³Ì:Ã¿²½ rehash ¶¼»áÒÆ¶¯¹þÏ£±íÊý×éÄÚÄ³¸öË÷ÒýÉÏµÄÕû¸öÁ´±í½Úµã£¬ËùÒÔ´Ó ht[0] Ç¨ÒÆµ½ ht[1] µÄkey 
+        ¿ÉÄÜ²»Ö¹Ò»¸ö¡£¼ûº¯ÊýdictRehash
+*/
+
+
+
+/* This is our hash table structure. Every dictionary has two of this as we
+ * implement incremental rehashing, for the old to the new table. */
+/*
+ * ¹þÏ£±í
+ *
+ * Ã¿¸ö×Öµä¶¼Ê¹ÓÃÁ½¸ö¹þÏ£±í£¬´Ó¶øÊµÏÖ½¥½øÊ½ rehash ¡£
+ */ 
+
+/*
+    Ê×ÏÈÃüÁîÐÐÖÐµÄ×Ö·û´®ÏÈ±£´æµ½½øÈëxxxCommand(ÈçsetCommand)º¯ÊýÊ±£¬¸÷¸öÃüÁî×Ö·û´®µ¥´¿ÒÑ¾­×ª»»ÎªredisObject±£´æµ½redisClient->argv[]ÖÐ£¬
+    È»ºóÔÚsetKeyµÈÏà¹Øº¯ÊýÖÐ°Ñkey-value×ª»»ÎªdictEntry½ÚµãµÄkeyºÍv(·Ö±ð¶ÔÓ¦keyºÍvalue)Ìí¼Óµ½dict->dictht->table[]  hashÖÐ,ÖÁÓÚÔõÃ´Ìí¼Óµ½dictEntry
+    ½ÚµãµÄkeyºÍvalueÖÐ¿ÉÒÔ²Î¿¼dict->type( typeÎªxxxDictType ÀýÈçkeyptrDictTypeµÈ) £¬¼ûdictCreate
+*/
+
+ //³õÊ¼»¯¼°¸³Öµ¼ûdictExpand
+typedef struct dictht {//dictht hashÍ°´æÔÚÓÚdict½á¹¹ÖÐ
+
+    //Ã¿¸ö¾ßÌåtable[i]ÖÐµÄ½ÚµãÊý¾ÝÀàÐÍÊÇdictEntry ½á¹¹±íÊ¾£¬ Ã¿¸ö dictEntry ½á¹¹¶¼±£´æ×ÅÒ»¸ö¼üÖµ¶Ô£º
+    // ¹þÏ£±í½ÚµãÖ¸ÕëÊý×é£¨Ë×³ÆÍ°£¬bucket£©
+    // ¹þÏ£±íÊý×é
+    dictEntry **table;//table[idx]Ö¸ÏòµÄÊÇÊ×¸ödictEntry½Úµã£¬¼ûdictAddRaw  ´´½¨³õÊ¼»¯tableÍ°¼ûdictExpand
+
+    // ¹þÏ£±í´óÐ¡
+    unsigned long size;//±íÊ¾¸ÃhashÖÐÊµ¼ÊÍ°µÄ¸öÊý
+    
+    // ¹þÏ£±í´óÐ¡ÑÚÂë£¬ÓÃÓÚ¼ÆËãË÷ÒýÖµ
+    // ×ÜÊÇµÈÓÚ size - 1 // Ö¸ÕëÊý×éµÄ³¤¶ÈÑÚÂë£¬ÓÃÓÚ¼ÆËãË÷ÒýÖµ   ÉúÐ§¼û_dictKeyIndex
+    unsigned long sizemask; //sizemask = size-1 ÒòÎª¾ßÌåµÄÍ°ÊÇ´Ó0µ½size-1
+
+    // ¸Ã¹þÏ£±íÒÑÓÐ½ÚµãµÄÊýÁ¿
+    unsigned long used;
+
+} dictht;
+
+/*
+×Öµä API
+
+º¯Êý                                 ×÷ÓÃ                                         Ê±¼ä¸´ÔÓ¶È
+
+
+dictCreate                      ´´½¨Ò»¸öÐÂµÄ×Öµä¡£                                  O(1) 
+dictAdd                         ½«¸ø¶¨µÄ¼üÖµ¶ÔÌí¼Óµ½×ÖµäÀïÃæ¡£                      O(1) 
+dictReplace                     ½«¸ø¶¨µÄ¼üÖµ¶ÔÌí¼Óµ½×ÖµäÀïÃæ£¬ Èç¹û¼üÒÑ¾­
+                                ´æÔÚÓÚ×Öµä£¬ÄÇÃ´ÓÃÐÂÖµÈ¡´úÔ­ÓÐµÄÖµ¡£                O(1) 
+dictFetchValue                  ·µ»Ø¸ø¶¨¼üµÄÖµ¡£                                    O(1) 
+dictGetRandomKey                ´Ó×ÖµäÖÐËæ»ú·µ»ØÒ»¸ö¼üÖµ¶Ô¡£                        O(1) 
+dictDelete                      ´Ó×ÖµäÖÐÉ¾³ý¸ø¶¨¼üËù¶ÔÓ¦µÄ¼üÖµ¶Ô¡£                  O(1) 
+dictRelease                     ÊÍ·Å¸ø¶¨×Öµä£¬ÒÔ¼°×ÖµäÖÐ°üº¬µÄËùÓÐ¼üÖµ¶Ô¡£          O(N) £¬ N Îª×Öµä°üº¬µÄ¼üÖµ¶ÔÊýÁ¿¡£ 
+_dictExpandIfNeeded             hashÀ©ÈÝ´óÐ¡ÔÚÕâÀïÅÐ¶Ï
+
+*/
+
+
+/*
+    Ê×ÏÈÃüÁîÐÐÖÐµÄ×Ö·û´®ÏÈ±£´æµ½½øÈëxxxCommand(ÈçsetCommand)º¯ÊýÊ±£¬¸÷¸öÃüÁî×Ö·û´®µ¥´¿ÒÑ¾­×ª»»ÎªredisObject±£´æµ½redisClient->argv[]ÖÐ£¬
+    È»ºóÔÚsetKeyµÈÏà¹Øº¯ÊýÖÐ°Ñkey-value×ª»»ÎªdictEntry½ÚµãµÄkeyºÍv(·Ö±ð¶ÔÓ¦keyºÍvalue)Ìí¼Óµ½dict->dictht->table[]  hashÖÐ,ÖÁÓÚÔõÃ´Ìí¼Óµ½dictEntry
+    ½ÚµãµÄkeyºÍvalueÖÐ¿ÉÒÔ²Î¿¼dict->type( typeÎªxxxDictType ÀýÈçkeyptrDictTypeµÈ) £¬¼ûdictCreate
+*/
+
+/*
+ * ×Öµä
+ */
+typedef struct dict {//dictCreate´´½¨ºÍ³õÊ¼»¯
+
+    //type ÊôÐÔÊÇÒ»¸öÖ¸Ïò dictType ½á¹¹µÄÖ¸Õë£¬ Ã¿¸ö dictType ½á¹¹±£´æÁËÒ»´ØÓÃÓÚ²Ù×÷ÌØ¶¨ÀàÐÍ¼üÖµ¶ÔµÄº¯Êý£¬ Redis »áÎªÓÃÍ¾²»
+//Í¬µÄ×ÖµäÉèÖÃ²»Í¬µÄÀàÐÍÌØ¶¨º¯Êý¡£
+    // ÀàÐÍÌØ¶¨º¯Êý
     dictType *type;
 
-    void *privdate;
+    // Ë½ÓÐÊý¾Ý // ÀàÐÍ´¦Àíº¯ÊýµÄË½ÓÐÊý¾Ý  privdata ÊôÐÔÔò±£´æÁËÐèÒª´«¸øÄÇÐ©ÀàÐÍtypeÌØ¶¨º¯ÊýµÄ¿ÉÑ¡²ÎÊý¡£
+    void *privdata;
 
-    /*ä¸¤ä¸ªé¡¹çš„æ•°ç»„ï¼Œæ¯ä¸ªé¡¹éƒ½æ˜¯ä¸€ä¸ªdicthtå“ˆå¸Œè¡¨,å¦ä¸€ä¸ªæ˜¯rehashçš„æ—¶å€™ä½¿ç”¨*/
-    dictht ht[2];
+    /*
+    ht ÊôÐÔÊÇÒ»¸ö°üº¬Á½¸öÏîµÄÊý×é£¬ Êý×éÖÐµÄÃ¿¸öÏî¶¼ÊÇÒ»¸ö dictht ¹þÏ£±í£¬ Ò»°ãÇé¿öÏÂ£¬ ×ÖµäÖ»Ê¹ÓÃ ht[0] ¹þÏ£±í£¬ ht[1] ¹þÏ£±íÖ»
+    »áÔÚ¶Ô ht[0] ¹þÏ£±í½øÐÐ rehash Ê±Ê¹ÓÃ¡£
+    
+    ³ýÁË ht[1] Ö®Íâ£¬ ÁíÒ»¸öºÍ rehash ÓÐ¹ØµÄÊôÐÔ¾ÍÊÇ rehashidx £º Ëü¼ÇÂ¼ÁË rehash Ä¿Ç°µÄ½ø¶È£¬ Èç¹ûÄ¿Ç°Ã»ÓÐÔÚ½øÐÐ rehash £¬ 
+    ÄÇÃ´ËüµÄÖµÎª -1 ¡£
+    */
 
-    /*è®°å½•rehashçš„è¿›åº¦ï¼Œå¦‚æžœæ²¡æœ‰è¿›è¡Œrehashï¼Œå€¼ä¸º-1*/
-    int rehashidx;
+    // ¹þÏ£±í
+    dictht ht[2];//dictht hashÍ°³õÊ¼»¯´´½¨¼ûdictExpand     
 
-    int iterators;
-} dict;
+    // rehash Ë÷Òý
+    // µ± rehash ²»ÔÚ½øÐÐÊ±£¬ÖµÎª -1  // ¼ÇÂ¼ rehash ½ø¶ÈµÄ±êÖ¾£¬ÖµÎª-1 ±íÊ¾ rehash Î´½øÐÐ
+    
+    //ÅÐ¶ÏÊÇ·ñÐèÒªrehash dictIsRehashing  _dictInit³õÊ¼»¯-1 //dictRehashÖÐ×ÓÔø£¬dictExpandÖÐÖÃ0£¬Èç¹ûÊÇÇ¨ÒÆÍê±ÏÖÃ-1
+    int rehashidx; /* rehashing not in progress if rehashidx == -1 */
 
+    // Ä¿Ç°ÕýÔÚÔËÐÐµÄ°²È«µü´úÆ÷µÄÊýÁ¿
+    int iterators; /* number of iterators currently running */
+
+} dict; //dict¿Õ¼ä´´½¨³õÊ¼»¯ÔÚdictExpand£¬µÚÒ»´ÎÊÇÔÚ_dictExpandIfNeededif->dictExpand(d, DICT_HT_INITIAL_SIZE);
+
+/* If safe is set to 1 this is a safe iterator, that means, you can call
+ * dictAdd, dictFind, and other functions against the dictionary even while
+ * iterating. Otherwise it is a non safe iterator, and only dictNext()
+ * should be called while iterating. */
+/*
+ * ×Öµäµü´úÆ÷
+ *
+ * Èç¹û safe ÊôÐÔµÄÖµÎª 1 £¬ÄÇÃ´ÔÚµü´ú½øÐÐµÄ¹ý³ÌÖÐ£¬
+ * ³ÌÐòÈÔÈ»¿ÉÒÔÖ´ÐÐ dictAdd ¡¢ dictFind ºÍÆäËûº¯Êý£¬¶Ô×Öµä½øÐÐÐÞ¸Ä¡£
+ *
+ * Èç¹û safe ²»Îª 1 £¬ÄÇÃ´³ÌÐòÖ»»áµ÷ÓÃ dictNext ¶Ô×Öµä½øÐÐµü´ú£¬
+ * ¶ø²»¶Ô×Öµä½øÐÐÐÞ¸Ä¡£
+ */
+typedef struct dictIterator {
+        
+    // ±»µü´úµÄ×Öµä
+    dict *d;
+
+    // table £ºÕýÔÚ±»µü´úµÄ¹þÏ£±íºÅÂë£¬Öµ¿ÉÒÔÊÇ 0 »ò 1 ¡£  dictht ht[2];ÖÐµÄÄÄÒ»¸ö
+    // index £ºµü´úÆ÷µ±Ç°ËùÖ¸ÏòµÄ¹þÏ£±íË÷ÒýÎ»ÖÃ¡£  ¶ÔÓ¦¾ßÌåµÄÍ°²ÛÎ»ºÅ
+    // safe £º±êÊ¶Õâ¸öµü´úÆ÷ÊÇ·ñ°²È«
+    int table, index, safe;
+
+    // entry £ºµ±Ç°µü´úµ½µÄ½ÚµãµÄÖ¸Õë
+    // nextEntry £ºµ±Ç°µü´ú½ÚµãµÄÏÂÒ»¸ö½Úµã
+    //             ÒòÎªÔÚ°²È«µü´úÆ÷ÔË×÷Ê±£¬ entry ËùÖ¸ÏòµÄ½Úµã¿ÉÄÜ»á±»ÐÞ¸Ä£¬
+    //             ËùÒÔÐèÒªÒ»¸ö¶îÍâµÄÖ¸ÕëÀ´±£´æÏÂÒ»½ÚµãµÄÎ»ÖÃ£¬
+    //             ´Ó¶ø·ÀÖ¹Ö¸Õë¶ªÊ§
+    dictEntry *entry, *nextEntry;
+
+    long long fingerprint; /* unsafe iterator fingerprint for misuse detection */
+} dictIterator;
+
+typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
+
+/* This is the initial size of every hash table */
+/*
+ * ¹þÏ£±íµÄ³õÊ¼´óÐ¡
+ */
+#define DICT_HT_INITIAL_SIZE     4
+
+/* ------------------------------- Macros ------------------------------------*/
+// ÊÍ·Å¸ø¶¨×Öµä½ÚµãµÄÖµ
+#define dictFreeVal(d, entry) \
+    if ((d)->type->valDestructor) \
+        (d)->type->valDestructor((d)->privdata, (entry)->v.val)
+
+// ÉèÖÃ¸ø¶¨×Öµä½ÚµãµÄÖµ
+#define dictSetVal(d, entry, _val_) do { \
+    if ((d)->type->valDup) \
+        entry->v.val = (d)->type->valDup((d)->privdata, _val_); \
+    else \
+        entry->v.val = (_val_); \
+} while(0)
+
+// ½«Ò»¸öÓÐ·ûºÅÕûÊýÉèÎª½ÚµãµÄÖµ
+#define dictSetSignedIntegerVal(entry, _val_) \
+    do { entry->v.s64 = _val_; } while(0)
+
+// ½«Ò»¸öÎÞ·ûºÅÕûÊýÉèÎª½ÚµãµÄÖµ
+#define dictSetUnsignedIntegerVal(entry, _val_) \
+    do { entry->v.u64 = _val_; } while(0)
+
+//dictTypeÖ÷ÒªÓÉxxxDictType(dbDictType zsetDictType setDictTypeµÈ)
+// ÊÍ·Å¸ø¶¨×Öµä½ÚµãµÄ¼ü
+#define dictFreeKey(d, entry) \
+    if ((d)->type->keyDestructor) \
+        (d)->type->keyDestructor((d)->privdata, (entry)->key)
+
+//dictTypeÖ÷ÒªÓÉxxxDictType(dbDictType zsetDictType setDictTypeµÈ)
+
+// ÉèÖÃ¸ø¶¨×Öµä½ÚµãµÄ¼ü
+#define dictSetKey(d, entry, _key_) do { \
+    if ((d)->type->keyDup) \
+        entry->key = (d)->type->keyDup((d)->privdata, _key_); \
+    else \
+        entry->key = (_key_); \
+} while(0)
+
+//dictTypeÖ÷ÒªÓÉxxxDictType(dbDictType zsetDictType setDictTypeµÈ)
+
+// ±È¶ÔÁ½¸ö¼ü
+#define dictCompareKeys(d, key1, key2) \
+    (((d)->type->keyCompare) ? \
+        (d)->type->keyCompare((d)->privdata, key1, key2) : \
+        (key1) == (key2))
+
+// ¼ÆËã¸ø¶¨¼üµÄ¹þÏ£Öµ
+#define dictHashKey(d, key) (d)->type->hashFunction(key)
+// ·µ»Ø»ñÈ¡¸ø¶¨½ÚµãµÄ¼ü
+#define dictGetKey(he) ((he)->key)
+// ·µ»Ø»ñÈ¡¸ø¶¨½ÚµãµÄÖµ
+#define dictGetVal(he) ((he)->v.val)
+// ·µ»Ø»ñÈ¡¸ø¶¨½ÚµãµÄÓÐ·ûºÅÕûÊýÖµ
+#define dictGetSignedIntegerVal(he) ((he)->v.s64)
+// ·µ»Ø¸ø¶¨½ÚµãµÄÎÞ·ûºÅÕûÊýÖµ
+#define dictGetUnsignedIntegerVal(he) ((he)->v.u64)
+// ·µ»Ø¸ø¶¨×ÖµäµÄ´óÐ¡   hashÍ°µÄ¸öÊý
+#define dictSlots(d) ((d)->ht[0].size+(d)->ht[1].size)
+// ·µ»Ø×ÖµäµÄÒÑÓÐ½ÚµãÊýÁ¿  ËùÓÐÍ°ÖÐ½ÚµãÖ®ºÍ
+#define dictSize(d) ((d)->ht[0].used+(d)->ht[1].used)
+// ²é¿´×ÖµäÊÇ·ñÕýÔÚ rehash
+#define dictIsRehashing(ht) ((ht)->rehashidx != -1)
+
+/* API */
+dict *dictCreate(dictType *type, void *privDataPtr);
+int dictExpand(dict *d, unsigned long size);
+int dictAdd(dict *d, void *key, void *val);
+dictEntry *dictAddRaw(dict *d, void *key);
+int dictReplace(dict *d, void *key, void *val);
+dictEntry *dictReplaceRaw(dict *d, void *key);
+int dictDelete(dict *d, const void *key);
+int dictDeleteNoFree(dict *d, const void *key);
+void dictRelease(dict *d);
+dictEntry * dictFind(dict *d, const void *key);
+void *dictFetchValue(dict *d, const void *key);
+int dictResize(dict *d);
+dictIterator *dictGetIterator(dict *d);
+dictIterator *dictGetSafeIterator(dict *d);
+dictEntry *dictNext(dictIterator *iter);
+void dictReleaseIterator(dictIterator *iter);
+dictEntry *dictGetRandomKey(dict *d);
+int dictGetRandomKeys(dict *d, dictEntry **des, int count);
+void dictPrintStats(dict *d);
+unsigned int dictGenHashFunction(const void *key, int len);
+unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len);
+void dictEmpty(dict *d, void(callback)(void*));
+void dictEnableResize(void);
+void dictDisableResize(void);
+int dictRehash(dict *d, int n);
+int dictRehashMilliseconds(dict *d, int ms);
+void dictSetHashFunctionSeed(unsigned int initval);
+unsigned int dictGetHashFunctionSeed(void);
+unsigned long dictScan(dict *d, unsigned long v, dictScanFunction *fn, void *privdata);
+
+/* Hash table types */
+extern dictType dictTypeHeapStringCopyKey;
+extern dictType dictTypeHeapStrings;
+extern dictType dictTypeHeapStringCopyKeyValue;
+
+#endif /* __DICT_H */
