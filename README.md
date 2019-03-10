@@ -14,6 +14,7 @@
 linux程序设计入门好书，涉及到linux程序设计的各方面。
 
 [《Unix网络编程》(卷一/卷二)](https://www.baidu.com/s?wd=unix%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B&rsv_spt=1&rsv_iqid=0xf4c4c96d00000c78&issp=1&f=8&rsv_bp=0&rsv_idx=2&ie=utf-8&rqlang=&tn=baiduhome_pg&ch=&rsv_enter=1&inputT=3994)
+
 linux下开发必读书籍。
 
 [《程序员的自我修养--链接、装载与库》](https://www.phei.com.cn/module/goods/wssd_content.jsp?bookid=24801)
