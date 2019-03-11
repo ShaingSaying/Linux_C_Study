@@ -2,19 +2,17 @@
 %{
 #include <stdio.h>
 %}
-
 /* declare tokens */
 %token NUMBER
 %token ADD SUB MUL DIV ABS
 %token OP CP
 %token EOL
-
 %%
 
 calclist: /* 空规则 */
     | calclist exp EOL { printf("= %d\n", $2); }
     ;
-
+    
 exp: factor 
     | exp ADD factor { $$ = $1 + $3; }
     | exp SUB factor { $$ = $1 - $3; }
