@@ -6,7 +6,6 @@
 #include<string.h>
 #include<time.h>
 
-
 typedef struct task_param
 {
     int         uid;
@@ -16,6 +15,7 @@ typedef struct task_param
 typedef struct task_unit
 {
     time_t      expire;                             /* 定时器设置绝对时间 */
+    int         delay_time;                         /* 设定延迟时间 */
     int         uuid;                               /* 任务标识符 */
     void        (*task_func)(void *);               /* 定时回调函数 */
     struct      task_param* client_alarm_data;      /* 回调函数参数 */
@@ -30,14 +30,7 @@ typedef struct heap_timer
 
 heap_timer tmanager1;
 
-void task_func(void* param);
-void percolate_down(heap_timer* tmanager, int hole);
-int resize(heap_timer* tmanager);
 int init_heap_time(heap_timer* tmanager, int cap);
-int empty(heap_timer* tmanager);
-int pop_timer(heap_timer* tmanager);
-void print_heap_time(heap_timer* tmanager);
 int add_timer(heap_timer *tmanager, int timeout, int uuid);
-void tick(heap_timer* tmanager);
 void alarm_handler(int sig);
 #endif

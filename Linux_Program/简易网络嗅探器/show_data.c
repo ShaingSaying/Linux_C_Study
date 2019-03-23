@@ -118,7 +118,7 @@ void print_udp_packet(unsigned char *buf , int size, t_sniffer *sniffer)
   
 	fprintf(sniffer->logfile,"Data Payload\n");
 
-	/* °ÑÓÃ»§Êý¾ÝÐ´ÈëÈÕÖ¾ÎÄ¼þ */
+	/* æŠŠç”¨æˆ·æ•°æ®å†™å…¥æ—¥å¿—æ–‡ä»¶ */
 	PrintData(buf + iphdrlen + sizeof udph,
 		(size - sizeof udph - iph->ihl * 4),
 		sniffer);

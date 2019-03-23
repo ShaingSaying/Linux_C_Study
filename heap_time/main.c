@@ -3,7 +3,6 @@
 
 int main()
 {
-    
     printf("Start building heaps....\n");
     init_heap_time(&tmanager1, 6);
 
@@ -16,7 +15,7 @@ int main()
     signal( SIGALRM, alarm_handler );
 
     time_t tt = time(NULL);
-    printf("当前时间:%s\n", ctime(&tt));
+    printf("curr time:%s\n", ctime(&tt));
     alarm( tmanager1.heap_array[0]->expire - time(NULL) );
 
     int i = 6;
@@ -24,8 +23,8 @@ int main()
     while(i)
      {
         sleep(10);
-        add_timer( &tmanager1, i*i,  j++);
         printf("********************%d*******************\n",--i);
+        add_timer( &tmanager1, i*i,  j++);
     }
     sleep(60);
     add_timer( &tmanager1, 40 , j++);
@@ -33,8 +32,7 @@ int main()
     add_timer( &tmanager1, 20 , j++);
     add_timer( &tmanager1, 10 , j++);
     add_timer( &tmanager1, 7 , j++);
-    
-    j = 0;
+
     while(1)
         sleep(5);
  
