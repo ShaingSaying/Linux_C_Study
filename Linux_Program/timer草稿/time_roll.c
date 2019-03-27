@@ -80,6 +80,7 @@ int add_timer( timer_manager* tmanager,
         tick = timeout / tmanager->slot_interval;
  
     rotation = tick / tmanager->slot_num_r;
+    
     slot = ( tmanager->cur_slot + tick % tmanager->slot_num_r )
                 % tmanager->slot_num_r - 1;
  
