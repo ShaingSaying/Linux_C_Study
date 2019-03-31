@@ -98,37 +98,35 @@ int	main()
 		/* 多路复用检测可读的套接字和标准输入 */
 		res = select(sd + 1, &fd_read, NULL, NULL, NULL);
 		if (res < 0)
-			{
-				close(sd);
-				if (errno != EINTR)
+		{
+			close(sd);
+			if (errno != EINTR)
 				perror("select() ");
-				return (EXIT_FAILURE);
-			}
+			return (EXIT_FAILURE);
+		}
 		else
+		{
+			/* 如果是标准输入可读，进入命令行处理程序 command_interpreter，暂时只支持 'quit' 命令 */
+			if (FD_ISSET(0, &fd_read)) 
 			{
-				/* 如果是标准输入可读，进入命令行处理程序 command_interpreter，暂时只支持 'quit' 命令 */
-				if (FD_ISSET(0, &fd_read)) 
-				{
-					if (command_interpreter(sd) == 1)
-					break;
-				}
-
-				/* 如果是套接字可读，则读取以太网数据帧的内容，并调用 ProcessPacket 函数解析出数据包的类型 */
-				else if (FD_ISSET(sd, &fd_read))
-					{
-						/* 读取以太网数据帧的内容 */
-						saddr_size = sizeof(saddr);
-						data_size = recvfrom(sd, buffer, 65536, 0, &saddr,(socklen_t*)&saddr_size); /* 读取以太网数据帧的内容 */
-						if (data_size <= 0)
-							{
-								close(sd);
-								perror("recvfrom(): ");
-								return (EXIT_FAILURE);
-							}
-
-						ProcessPacket(buffer, data_size, &sniffer); /* 调用 ProcessPacket 函数解析出数据包的类型 */
-					}
+				if (command_interpreter(sd) == 1)
+				break;
 			}
+			/* 如果是套接字可读，则读取以太网数据帧的内容，并调用 ProcessPacket 函数解析出数据包的类型 */
+			else if (FD_ISSET(sd, &fd_read))
+			{
+				/* 读取以太网数据帧的内容 */
+				saddr_size = sizeof(saddr);
+				data_size = recvfrom(sd, buffer, 65536, 0, &saddr,(socklen_t*)&saddr_size); /* 读取以太网数据帧的内容 */
+				if (data_size <= 0)
+				{
+					close(sd);
+					perror("recvfrom(): ");
+					return (EXIT_FAILURE);
+				}
+				ProcessPacket(buffer, data_size, &sniffer); /* 调用 ProcessPacket 函数解析出数据包的类型 */
+			}
+		}
 	}
 	
 	close(sd);

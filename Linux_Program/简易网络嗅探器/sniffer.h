@@ -1,7 +1,6 @@
 #ifndef	__SNIFFER_H__
 #define	__SNIFFER_H__
 
-
 typedef struct	s_protocol
 {
 	int	tcp;

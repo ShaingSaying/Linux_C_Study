@@ -1,6 +1,5 @@
 #ifndef	__COLOR_H__
 #define	__COLOR_H__
-
 #include <stdio.h>
 
 #define	CLEARSCREEN() printf("\033[H\033[2J")
