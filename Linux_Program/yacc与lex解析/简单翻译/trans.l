@@ -7,3 +7,11 @@
 "conservative"  { printf("liberal"); }
 .               { printf("%s", yytext); }
 %%
+main(int argc, char **argv)
+{
+    yylex();
+}
+int yywrap()
+{
+    return 1;
+}

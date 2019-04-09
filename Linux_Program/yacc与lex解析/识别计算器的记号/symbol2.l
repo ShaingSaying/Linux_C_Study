@@ -34,3 +34,8 @@ main(int argc, char **argv)
             printf("\n");
     }
 }
+
+int yywrap()
+{
+    return 1;
+}
