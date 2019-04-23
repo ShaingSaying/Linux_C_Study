@@ -7,7 +7,7 @@ void que_init(pque_t pq,int sizenum)
     pq->que_front = 0;
     pq->que_tail = 0;
     pthread_mutex_init(&pq->que_lock,NULL); //初始化互斥锁
-    pthread_cond_init(&pq->que_pro,NULL); //初始化信号量
+    pthread_cond_init(&pq->que_pro,NULL); //初始化条件变量
     pthread_cond_init(&pq->que_con,NULL);
 }
 

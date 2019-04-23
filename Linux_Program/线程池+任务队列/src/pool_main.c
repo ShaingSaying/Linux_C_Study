@@ -47,8 +47,8 @@ int main(int argc,char *argv[])
         tm.tv_usec = 0;     //设置时间
         if(0 == select(1024, &rds, NULL, NULL, &tm))
         {
-            continue;
-        }//如果没有输入，继续监听
+            continue;   //如果没有输入，继续监听
+        }
         if(FD_ISSET(0,&rds))
         {
             memset(buf, 0, sizeof(buf));
